@@ -1,0 +1,783 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FF Admin - Master Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #050810; color: #e2e8f0; }
+        .font-game { font-family: 'Orbitron', sans-serif; }
+        .neon-border { border: 1px solid rgba(59, 130, 246, 0.5); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .nav-active { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.8); }
+        input, select { background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="login-box" class="fixed inset-0 bg-[#050810] z-[9999] flex items-center justify-center p-6">
+    <div class="w-full max-sm:max-w-xs max-w-sm">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                <i class="fa fa-shield-halved text-3xl text-white"></i>
+            </div>
+            <h1 class="font-game text-2xl font-bold tracking-widest text-white">MASTER <span class="text-blue-500">CORE</span></h1>
+            <p class="text-gray-500 text-[10px] mt-2 uppercase tracking-[0.4em]">Tournament Authority</p>
+        </div>
+        <div class="glass-card p-8 rounded-[2.5rem] space-y-4 border-white/5">
+            <input type="text" id="adm-id" placeholder="Admin Identity" class="w-full p-4 rounded-2xl outline-none focus:border-blue-500 transition">
+            <input type="password" id="adm-pass" placeholder="Secret Key" class="w-full p-4 rounded-2xl outline-none focus:border-blue-500 transition">
+            <button onclick="adminAuth()" class="w-full py-4 bg-blue-600 rounded-2xl font-game font-bold text-sm tracking-widest hover:bg-blue-700 transition shadow-lg shadow-blue-500/30">INITIALIZE</button>
+        </div>
+    </div>
+</div>
+
+<div id="admin-content" class="hidden min-h-screen pb-24">
+    <div class="p-6 flex justify-between items-center sticky top-0 bg-[#050810]/80 backdrop-blur-lg z-50 border-b border-white/5">
+        <div>
+            <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Dashboard</p>
+            <h2 id="page-title" class="font-game text-lg text-white">OVERVIEW</h2>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="openAnn()" class="w-10 h-10 glass-card rounded-full flex items-center justify-center text-purple-400"><i class="fa fa-bullhorn"></i></button>
+            <button onclick="location.reload()" class="w-10 h-10 glass-card rounded-full flex items-center justify-center text-red-500"><i class="fa fa-power-off"></i></button>
+        </div>
+    </div>
+
+    <div class="px-4 mt-4">
+        <div id="tab-home" class="tab-content block">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="glass-card p-5 rounded-[2rem] neon-border">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Total Tourneys</p>
+                    <h3 id="stat-matches" class="text-2xl font-game mt-1 text-white">0</h3>
+                </div>
+                <div class="glass-card p-5 rounded-[2rem]">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase">Pending Reqs</p>
+                    <h3 id="stat-reqs" class="text-2xl font-game mt-1 text-yellow-500">0</h3>
+                </div>
+            </div>
+            
+            <h4 class="font-game text-[10px] mb-4 text-blue-400 tracking-tighter italic px-2">Deposit Requests</h4>
+            <div id="deposit-list" class="space-y-4"></div>
+
+            <div class="mt-10">
+    <h4 class="font-game text-[10px] mb-4 text-green-400 tracking-tighter italic px-2">Announce Result</h4>
+    <div class="glass-card p-6 rounded-[2.5rem] space-y-4">
+        
+        <select id="res-match-id" onchange="fetchPlayersForWinner(this.value)" class="w-full p-4 rounded-2xl outline-none text-xs bg-[#1a1a1a] text-white border-none">
+            <option value="">Select Match First</option>
+        </select>
+
+        <input id="res-winner-name" list="match-players" placeholder="Type or Select Winner Name" class="w-full p-4 rounded-2xl outline-none text-xs">
+        <datalist id="match-players"></datalist>
+
+        <input type="hidden" id="res-match-name">
+
+        <input type="file" id="res-img" accept="image/*" class="w-full text-[10px] text-gray-500">
+        <button onclick="uploadResult()" id="post-res-btn" class="w-full py-4 bg-green-600 rounded-2xl font-game text-[10px] shadow-lg shadow-green-500/20 uppercase">POST RESULT</button>
+    </div>
+</div>
+        </div>
+
+        <div id="tab-matches" class="tab-content">
+            <div class="flex justify-between items-center mb-6 px-2">
+                <h4 class="font-game text-sm text-blue-400">MANAGE MATCHES</h4>
+                <button onclick="openModal()" class="bg-blue-600 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest">+ Create</button>
+            </div>
+            <div id="match-list" class="space-y-4 pb-10"></div>
+        </div>
+
+        <div id="tab-users" class="tab-content">
+            <div class="px-2 mb-6">
+                <h4 class="font-game text-sm text-blue-400 mb-4">USER DATABASE</h4>
+                <div class="relative">
+                    <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                    <input type="text" id="user-search" oninput="searchUsers()" placeholder="Search Name, Email..." class="w-full p-4 pl-12 rounded-2xl outline-none text-xs">
+                </div>
+            </div>
+            <div id="master-user-list" class="space-y-4 px-2 pb-10"></div>
+        </div>
+
+        <div id="tab-leaderboard" class="tab-content">
+            <div class="px-2 mb-6">
+                <h4 class="font-game text-sm text-yellow-500 mb-4">WEEKLY LEADERBOARD</h4>
+                <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-[2.5rem] mb-6 text-center">
+                    <button onclick="generateWeeklyLeaderboard()" class="w-full py-4 bg-blue-600 rounded-2xl font-game text-[10px] shadow-lg">GENERATE NEW RANKING</button>
+                </div>
+                <div class="glass-card p-4 rounded-[2rem] border-yellow-500/30">
+                    <div class="relative">
+                        <i class="fa fa-trophy absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        <input type="text" id="leader-search" oninput="searchForLeader()" placeholder="Search Legend..." class="w-full p-4 pl-12 rounded-2xl outline-none text-xs">
+                    </div>
+                    <div id="leader-search-results" class="mt-4 space-y-2"></div>
+                </div>
+            </div>
+            <div id="top-players-list" class="space-y-4 px-2 pb-10"></div>
+        </div>
+
+        <div id="tab-withdraw" class="tab-content">
+            <h4 class="font-game text-sm mb-6 px-2 text-blue-400 uppercase tracking-widest">Withdrawal Queue</h4>
+            <div id="withdraw-list" class="space-y-4 px-2 pb-10"></div>
+        </div>
+
+        <div id="tab-settings" class="tab-content">
+            <h4 class="font-game text-sm mb-6 px-2 text-blue-400 uppercase tracking-widest">Core Config</h4>
+            <div class="glass-card p-6 rounded-[2.5rem] space-y-6">
+                <div class="text-center">
+                    <p class="text-[10px] font-bold text-gray-500 uppercase mb-4 tracking-widest">Update Payment QR</p>
+                    <img id="current-qr-preview" src="https://via.placeholder.com/150" class="w-40 h-40 object-contain mx-auto bg-white p-2 rounded-2xl mb-4">
+                    <input type="file" id="adm-qr-input" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('adm-qr-input').click()" class="w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase mb-3">Choose File</button>
+                    <button onclick="updateSystemQR()" class="w-full py-4 bg-blue-600 rounded-xl text-white font-bold text-[10px] uppercase shadow-lg shadow-blue-500/20">Update Server QR</button>
+                </div>
+
+                <div class="border-t border-white/5 pt-6 mt-6">
+                    <p class="text-[10px] font-bold text-red-500 uppercase mb-4 tracking-widest text-center italic">Database Storage Health</p>
+                    <button onclick="wipeAllScreenshots()" class="w-full py-4 bg-red-600 rounded-xl text-white font-bold text-[10px] uppercase shadow-lg shadow-red-500/20">
+                        <i class="fa fa-trash-alt mr-2"></i> Wipe All Screenshots (24h+)
+                    </button>
+                    <p class="text-[7px] text-gray-500 mt-2 text-center uppercase tracking-widest">Removes Base64 images from old requests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#0A0F1E]/95 backdrop-blur-2xl border-t border-white/5 px-4 py-3 flex justify-between items-center z-[100] rounded-t-[2.5rem]">
+        <button onclick="switchTab('home', this)" class="flex flex-col items-center gap-1 nav-active">
+            <i class="fa fa-th-large text-xl"></i><span class="text-[7px] font-bold uppercase">Home</span>
+        </button>
+        <button onclick="switchTab('matches', this)" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa fa-gamepad text-xl"></i><span class="text-[7px] font-bold uppercase">Matches</span>
+        </button>
+        <button onclick="switchTab('users', this)" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa fa-users text-xl"></i><span class="text-[7px] font-bold uppercase">Users</span>
+        </button>
+        <button onclick="switchTab('leaderboard', this)" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa fa-trophy text-xl"></i><span class="text-[7px] font-bold uppercase">Weekly</span>
+        </button>
+        <button onclick="switchTab('withdraw', this)" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa fa-receipt text-xl"></i><span class="text-[7px] font-bold uppercase">Payouts</span>
+        </button>
+        <button onclick="switchTab('settings', this)" class="flex flex-col items-center gap-1 text-gray-500">
+            <i class="fa fa-sliders text-xl"></i><span class="text-[7px] font-bold uppercase">Config</span>
+        </button>
+    </nav>
+</div>
+
+<div id="m-modal" class="fixed inset-0 bg-black/95 hidden z-[999] overflow-y-auto p-4 flex items-center justify-center">
+    <div class="w-full max-w-lg glass-card p-6 rounded-[3rem] border-white/10">
+        <h3 id="modal-title" class="font-game text-center text-blue-500 mb-8 tracking-widest uppercase">Match Entry</h3>
+        <input type="hidden" id="m-edit-id">
+        <div class="grid grid-cols-1 gap-4">
+            <input id="m-name" placeholder="Tournament Title" class="p-4 rounded-2xl outline-none">
+            <input id="m-img" placeholder="Poster URL" class="p-4 rounded-2xl outline-none">
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-prize" placeholder="Prize Pool" class="p-4 rounded-2xl outline-none">
+                <input id="m-fee" placeholder="Entry Fee" class="p-4 rounded-2xl outline-none">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-slots" type="number" placeholder="Max Slots" class="p-4 rounded-2xl outline-none">
+                <input id="m-per-kill" type="number" placeholder="Per Kill" class="p-4 rounded-2xl outline-none">
+            </div>
+            <input id="m-time" type="datetime-local" class="p-4 rounded-2xl outline-none">
+            <div class="grid grid-cols-2 gap-4">
+                <select id="m-type" class="p-4 rounded-2xl outline-none"><option value="SOLO">SOLO</option><option value="DUO">DUO</option><option value="SQUAD">SQUAD</option></select>
+                <select id="m-map" class="p-4 rounded-2xl outline-none"><option value="Bermuda">Bermuda</option><option value="Purgatory">Purgatory</option></select>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <input id="m-room-id" placeholder="Room ID" class="p-4 rounded-2xl outline-none">
+                <input id="m-room-pass" placeholder="Password" class="p-4 rounded-2xl outline-none">
+            </div>
+            <select id="m-status" class="p-4 rounded-2xl outline-none">
+                <option value="upcoming">Upcoming</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        <div class="flex gap-4 mt-8">
+            <button onclick="saveMatch()" class="flex-1 py-4 bg-blue-600 rounded-2xl font-game text-[10px]">COMMIT</button>
+            <button onclick="closeModal()" class="flex-1 py-4 bg-white/5 rounded-2xl font-game text-[10px]">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="leader-stats-modal" class="fixed inset-0 bg-black/95 hidden z-[3000] flex items-center justify-center p-6">
+    <div class="w-full max-sm:max-w-xs glass-card p-8 rounded-[3rem] border-yellow-500/20">
+        <h3 class="font-game text-center text-yellow-500 mb-6 uppercase text-sm italic">Update Legend</h3>
+        <input type="hidden" id="leader-uid">
+        <div class="space-y-4">
+            <input id="l-earnings" type="number" placeholder="Earnings (₹)" class="w-full p-4 rounded-2xl outline-none">
+            <input id="l-won" type="number" placeholder="Won Count" class="w-full p-4 rounded-2xl outline-none">
+            <input id="l-rank" type="text" placeholder="Rank Name" class="w-full p-4 rounded-2xl outline-none">
+        </div>
+        <div class="flex gap-4 mt-8">
+            <button onclick="saveLeaderStats()" class="flex-1 py-4 bg-yellow-600 rounded-2xl font-game text-[10px] text-black">SAVE</button>
+            <button onclick="document.getElementById('leader-stats-modal').classList.add('hidden')" class="flex-1 py-4 bg-white/5 rounded-2xl font-game text-[10px]">BACK</button>
+        </div>
+    </div>
+</div>
+
+<div id="player-modal" class="fixed inset-0 bg-black/95 hidden z-[1000] p-6 overflow-y-auto">
+    <div class="flex justify-between items-center mb-8"><h3 id="player-count-display" class="font-game text-blue-500 text-sm">0 Players</h3><button onclick="document.getElementById('player-modal').classList.add('hidden')" class="w-10 h-10 glass-card rounded-full"><i class="fa fa-times"></i></button></div>
+    <div id="player-list-content" class="space-y-3"></div>
+</div>
+
+<div id="kill-modal" class="fixed inset-0 bg-black/95 hidden z-[1001] p-6 overflow-y-auto">
+    <div class="flex justify-between items-center mb-8"><h3 id="kill-match-title" class="font-game text-green-500 text-sm">Manage Kills</h3><button onclick="document.getElementById('kill-modal').classList.add('hidden')" class="w-10 h-10 glass-card rounded-full"><i class="fa fa-times"></i></button></div>
+    <div id="kill-list-content" class="space-y-4"></div>
+</div>
+
+<div id="proof-modal" class="fixed inset-0 bg-black/98 hidden z-[4000] p-6 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6"><h3 class="font-game text-xs text-blue-400">WINNER PROOFS</h3><button onclick="document.getElementById('proof-modal').classList.add('hidden')" class="w-10 h-10 rounded-full glass-card"><i class="fa fa-times"></i></button></div>
+    <div id="proof-list-content" class="grid grid-cols-1 gap-6 pb-20"></div>
+</div>
+
+<div id="img-viewer" class="fixed inset-0 bg-black/95 hidden z-[9999] p-6 flex items-center justify-center" onclick="this.classList.add('hidden')">
+    <img id="full-view-img" class="max-w-full max-h-[80vh] rounded-2xl neon-border">
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyCZz90P8npkRcL0ZctIelDFbKRN48BsZzk",
+        authDomain: "tracking-7494e.firebaseapp.com",
+        databaseURL: "https://tracking-7494e-default-rtdb.firebaseio.com",
+        projectId: "tracking-7494e",
+        storageBucket: "tracking-7494e.firebasestorage.app",
+        messagingSenderId: "861816870090",
+        appId: "1:861816870090:web:8ff2e307b1ea3c44d49033"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let allUsers = {};
+
+    // --- AUTH ---
+    function adminAuth() {
+        const id = document.getElementById('adm-id').value;
+        const pass = document.getElementById('adm-pass').value;
+        db.ref('admin_settings').once('value', snap => {
+            const data = snap.val();
+            if (data && data.id === id && String(data.pass) === String(pass)) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                initSystem();
+            } else { alert("Wrong Admin Credentials!"); }
+        });
+    }
+
+    function initSystem() {
+        loadOverview();
+        loadMatches();
+        loadDeposits();
+        loadWithdraws();
+        loadUserManagement();
+        loadLeaderboard();
+        fetchCurrentQR();
+    }
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('nav-active', 'text-gray-500'));
+        btn.classList.add('nav-active');
+        document.getElementById('page-title').innerText = tabName.toUpperCase();
+    }
+
+    // --- OVERVIEW & STATS ---
+    function loadOverview() {
+        db.ref('tournaments').on('value', snap => {
+            document.getElementById('stat-matches').innerText = snap.numChildren();
+        });
+        db.ref('deposit_requests').on('value', snap => {
+            let pending = 0;
+            snap.forEach(c => { if(c.val().status === 'pending') pending++; });
+            document.getElementById('stat-reqs').innerText = pending;
+        });
+    }
+
+    // --- MATCH MANAGEMENT ---
+   function loadMatches() {
+    db.ref('tournaments').on('value', snap => {
+        const list = document.getElementById('match-list');
+        const select = document.getElementById('res-match-id'); // Result dropdown selection
+        
+        list.innerHTML = "";
+        if(select) select.innerHTML = '<option value="">Select Match First</option>';
+
+        snap.forEach(child => {
+            const t = child.val();
+            const pCount = t.players ? Object.keys(t.players).length : 0;
+            
+            // --- UI Cards Logic ---
+            list.innerHTML += `
+            <div class="glass-card p-5 rounded-[2.5rem] mb-4">
+                <div class="flex gap-4 mb-5">
+                    <img src="${t.img}" class="w-16 h-16 rounded-2xl object-cover shadow-lg">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-game text-xs text-white truncate uppercase">${t.name}</p>
+                        <div class="flex gap-2 mt-2">
+                            <span class="bg-blue-600/10 text-blue-400 text-[8px] font-bold px-2 py-1 rounded">${t.type}</span>
+                            <span class="bg-green-600/10 text-green-400 text-[8px] font-bold px-2 py-1 rounded">₹${t.fee}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <button onclick="editMatch('${child.key}')" class="bg-white/5 py-3 rounded-xl text-xs"><i class="fa fa-edit"></i></button>
+                    <button onclick="viewPlayers('${child.key}')" class="bg-blue-600/10 text-blue-500 py-3 rounded-xl text-xs"><i class="fa fa-users"></i></button>
+                    <button onclick="openKillManager('${child.key}', '${t.name}', ${t.perKill})" class="bg-green-600/10 text-green-500 py-3 rounded-xl text-xs"><i class="fa fa-skull"></i></button>
+                    <button onclick="viewProofWin('${child.key}')" class="bg-purple-600/10 text-purple-500 py-3 rounded-xl text-xs"><i class="fa fa-check-double"></i></button>
+                    <button onclick="deleteMatch('${child.key}')" class="col-span-4 mt-2 bg-red-600/10 text-red-500 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest">Delete Match</button>
+                </div>
+            </div>`;
+
+            // --- Dropdown Logic ---
+            if(select) {
+                select.innerHTML += `<option value="${child.key}">${t.name}</option>`;
+            }
+        });
+    });
+}
+
+
+function fetchPlayersForWinner(matchId) {
+    if(!matchId) return;
+    
+    const datalist = document.getElementById('match-players');
+    const matchNameInput = document.getElementById('res-match-name');
+    datalist.innerHTML = ""; 
+
+    db.ref(`tournaments/${matchId}`).once('value', snap => {
+        const data = snap.val();
+        if(data) {
+            matchNameInput.value = data.name; // Match name automatically set karo
+            
+            if(data.players) {
+                Object.values(data.players).forEach(player => {
+                    // Sirf us match ke players suggestion mein aayenge
+                    datalist.innerHTML += `<option value="${player.ign}">`;
+                });
+            }
+        }
+    });
+}
+
+
+
+    function saveMatch() {
+        const id = document.getElementById('m-edit-id').value;
+        const data = {
+            name: document.getElementById('m-name').value,
+            img: document.getElementById('m-img').value || "https://via.placeholder.com/300",
+            prize: document.getElementById('m-prize').value,
+            fee: document.getElementById('m-fee').value,
+            slots: parseInt(document.getElementById('m-slots').value),
+            perKill: parseInt(document.getElementById('m-per-kill').value),
+            time: document.getElementById('m-time').value,
+            type: document.getElementById('m-type').value,
+            map: document.getElementById('m-map').value,
+            status: document.getElementById('m-status').value,
+            roomId: document.getElementById('m-room-id').value,
+            roomPass: document.getElementById('m-room-pass').value
+        };
+        if(id) db.ref('tournaments/'+id).update(data); else db.ref('tournaments').push(data);
+        closeModal();
+    }
+
+    function editMatch(id) {
+        db.ref('tournaments/'+id).once('value', snap => {
+            const t = snap.val(); 
+            document.getElementById('m-edit-id').value = id;
+            document.getElementById('m-name').value = t.name; 
+            document.getElementById('m-img').value = t.img;
+            document.getElementById('m-prize').value = t.prize; 
+            document.getElementById('m-fee').value = t.fee;
+            document.getElementById('m-slots').value = t.slots; 
+            document.getElementById('m-per-kill').value = t.perKill;
+            document.getElementById('m-time').value = t.time; 
+            document.getElementById('m-type').value = t.type;
+            document.getElementById('m-map').value = t.map; 
+            document.getElementById('m-status').value = t.status;
+            document.getElementById('m-room-id').value = t.roomId || ''; 
+            document.getElementById('m-room-pass').value = t.roomPass || '';
+            document.getElementById('modal-title').innerText = "Update Match Settings";
+            document.getElementById('m-modal').classList.remove('hidden');
+        });
+    }
+
+    function deleteMatch(id) { if(confirm("Permanently wipe this match?")) db.ref('tournaments/'+id).remove(); }
+    function openModal() { document.getElementById('m-edit-id').value = ""; document.getElementById('m-modal').classList.remove('hidden'); document.getElementById('modal-title').innerText = "New Tournament"; }
+    function closeModal() { document.getElementById('m-modal').classList.add('hidden'); }
+
+    // --- USER MANAGEMENT ---
+    function loadUserManagement() {
+        db.ref('users').on('value', snap => {
+            allUsers = snap.val() || {};
+            renderUsers(allUsers);
+        });
+    }
+
+   // Is poore function ko apne purane renderUsers se badal dein
+function renderUsers(usersData) {
+    const list = document.getElementById('master-user-list'); 
+    list.innerHTML = "";
+    
+    Object.keys(usersData).forEach(uid => {
+        const u = usersData[uid];
+        const isBanned = u.status === 'banned';
+        
+        // Gmail aur Photo fetch logic
+        const userEmail = u.email || "No Email Found";
+        const userPhoto = u.photo || u.profilePic || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+
+        list.innerHTML += `
+        <div class="glass-card p-5 rounded-[2.5rem] border-l-4 ${isBanned ? 'border-red-600' : 'border-blue-500'} mb-4 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-blue-600/30 bg-black/40 shadow-lg">
+                <img src="${userPhoto}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+            </div>
+            
+            <div class="flex-1 min-w-0">
+                <h3 class="font-game text-xs text-white truncate uppercase tracking-tighter">${u.displayName || u.name || 'Unknown'}</h3>
+                <p class="text-blue-500 text-[9px] font-bold tracking-tight truncate">${userEmail}</p>
+                <p class="text-gray-600 text-[8px] font-mono mt-1 truncate">${uid}</p>
+            </div>
+
+            <div class="flex flex-col gap-2 items-end">
+                <div class="flex items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5">
+                    <input type="number" id="coin-input-${uid}" value="${u.points || 0}" class="bg-transparent text-[10px] font-bold text-yellow-500 w-16 text-center outline-none">
+                    <button onclick="editCoins('${uid}')" class="bg-blue-600 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase">Save</button>
+                </div>
+                <button onclick="toggleBan('${uid}', ${isBanned})" class="${isBanned ? 'bg-green-600/20 text-green-500' : 'bg-red-600/20 text-red-500'} p-2 rounded-xl text-[10px] border border-white/5">
+                    <i class="fa ${isBanned ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                </button>
+            </div>
+        </div>`;
+    });
+}
+    function searchUsers() {
+        const q = document.getElementById('user-search').value.toLowerCase();
+        const filtered = {};
+        Object.keys(allUsers).forEach(id => {
+            const u = allUsers[id];
+            if ((u.displayName || u.name || '').toLowerCase().includes(q) || id.includes(q)) filtered[id] = u;
+        });
+        renderUsers(filtered);
+    }
+
+    function editCoins(uid) {
+        const val = document.getElementById(`coin-input-${uid}`).value;
+        db.ref(`users/${uid}/points`).set(Number(val)).then(() => alert("Points Sync Completed!"));
+    }
+
+    function toggleBan(uid, isB) { db.ref('users/' + uid).update({ status: isB ? 'active' : 'banned' }); }
+
+    // --- LEADERBOARD LOGIC ---
+    function loadLeaderboard() {
+        db.ref('leaderboard').on('value', snap => {
+            const list = document.getElementById('top-players-list'); list.innerHTML = "";
+            let i = 1;
+            snap.forEach(c => {
+                const l = c.val();
+                list.innerHTML += `<div class="glass-card p-4 rounded-2xl flex items-center gap-4 mb-3">
+                    <span class="font-game text-blue-500 text-xs">#${i++}</span>
+                    <img src="${l.photo}" class="w-10 h-10 rounded-full border border-blue-500/30">
+                    <div class="flex-1"><p class="text-xs font-bold text-white uppercase">${l.name}</p><p class="text-[9px] text-green-400">₹${l.winnings} EARNED</p></div>
+                    <button onclick="db.ref('leaderboard/${c.key}').remove()" class="text-red-500 px-2"><i class="fa fa-trash-alt"></i></button>
+                </div>`;
+            });
+        });
+    }
+
+    function searchForLeader() {
+        const query = document.getElementById('leader-search').value.toLowerCase();
+        const results = document.getElementById('leader-search-results');
+        results.innerHTML = "";
+        if(query.length < 2) return;
+        Object.keys(allUsers).forEach(uid => {
+            const u = allUsers[uid];
+            const name = (u.displayName || u.name || '').toLowerCase();
+            if(name.includes(query)) {
+                results.innerHTML += `<div onclick="openLeaderEditor('${uid}')" class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-blue-600/20"><span class="text-xs text-white">${u.displayName || u.name}</span><i class="fa fa-plus-circle text-blue-500"></i></div>`;
+            }
+        });
+    }
+
+    function openLeaderEditor(uid) {
+        document.getElementById('leader-uid').value = uid;
+        document.getElementById('leader-stats-modal').classList.remove('hidden');
+    }
+
+    function saveLeaderStats() {
+        const uid = document.getElementById('leader-uid').value;
+        const u = allUsers[uid];
+        const data = {
+            uid: uid,
+            name: u.displayName || u.name || "Hero",
+            photo: u.profilePic || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+            winnings: document.getElementById('l-earnings').value || 0,
+            won: document.getElementById('l-won').value || 0,
+            rank: document.getElementById('l-rank').value || 'Legend'
+        };
+        db.ref('leaderboard/' + uid).set(data).then(() => {
+            alert("Legend Updated!");
+            document.getElementById('leader-stats-modal').classList.add('hidden');
+        });
+    }
+
+    function generateWeeklyLeaderboard() {
+        if(!confirm("Auto-generate by TOP Winnings?")) return;
+        let pool = [];
+        Object.keys(allUsers).forEach(uid => {
+            let u = allUsers[uid];
+            if(parseInt(u.winnings || 0) > 0) {
+                pool.push({ uid: uid, name: u.displayName || u.name, photo: u.profilePic || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', winnings: parseInt(u.winnings), won: u.totalWins || 0, rank: "Legend" });
+            }
+        });
+        pool.sort((a,b) => b.winnings - a.winnings);
+        let top10 = pool.slice(0, 10);
+        let finalData = {};
+        top10.forEach(p => finalData[p.uid] = p);
+        db.ref('leaderboard').set(finalData).then(() => alert("Weekly Ranking Live!"));
+    }
+
+    // --- PAYMENTS & AUTO DELETE SCREENSHOTS ---
+    function loadDeposits() {
+        db.ref('deposit_requests').on('value', snap => {
+            const list = document.getElementById('deposit-list'); list.innerHTML = "";
+            snap.forEach(child => {
+                const r = child.val();
+                if(r.status === 'pending') {
+                    list.innerHTML += `<div class="glass-card p-4 rounded-3xl border-l-4 border-yellow-500 mb-4">
+                        <div class="flex justify-between items-start mb-3">
+                            <div><p class="text-[8px] text-gray-500 uppercase">${r.email || 'User'}</p><p class="text-lg font-game text-white">₹${r.amount}</p></div>
+                            <button onclick="viewFullImg('${r.screenshot}')" class="w-10 h-10 rounded-xl overflow-hidden border border-white/10"><img src="${r.screenshot}" class="w-full h-full object-cover"></button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="approvePoints('${child.key}', '${r.uid}', ${r.amount})" class="flex-1 py-3 bg-green-600 rounded-xl text-[9px] font-black uppercase">APPROVE</button>
+                            <button onclick="rejectRequest('deposit_requests', '${child.key}')" class="flex-1 py-3 bg-red-600/10 text-red-500 rounded-xl text-[9px] font-black uppercase">REJECT</button>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+    }
+
+    function approvePoints(rid, uid, amt) {
+        if(!confirm(`Approve ₹${amt} and delete screenshot?`)) return;
+        db.ref(`users/${uid}/points`).transaction(c => (c||0) + Number(amt));
+        db.ref(`deposit_requests/${rid}`).update({ status: 'approved', screenshot: null }).then(() => alert("Approved & Screenshot Deleted!"));
+    }
+
+   // Is function ko apne purane loadWithdraws se badal do
+function loadWithdraws() {
+    db.ref('withdraw_requests').on('value', snap => {
+        const list = document.getElementById('withdraw-list'); 
+        list.innerHTML = "";
+        
+        snap.forEach(child => {
+            const w = child.val();
+            if(w.status === 'pending') {
+                // Fix: Agar user ki photo database mein hai toh wo, nahi toh default icon
+                const userPhoto = w.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                // Fix: Gmail fetch logic
+                const userEmail = w.email || "No Email Provided";
+
+                list.innerHTML += `
+                <div class="glass-card p-5 rounded-[2.5rem] border-l-4 border-blue-500 mb-4">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-2xl overflow-hidden border border-blue-500/30 bg-black/40">
+                            <img src="${userPhoto}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        </div>
+                        
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[10px] font-bold text-white uppercase truncate">${w.userName}</p>
+                            <p class="text-[9px] text-blue-400 font-bold truncate">${userEmail}</p>
+                            <p class="text-[8px] text-gray-500 mt-1">${w.method}: ${w.payoutId}</p>
+                        </div>
+                        
+                        <div class="text-right">
+                            <p class="text-lg font-game text-green-500">₹${w.amount}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 relative group">
+                        <p class="text-[7px] text-gray-600 uppercase mb-2 tracking-widest italic text-center">User Withdrawal Proof</p>
+                        <img src="${w.screenshot}" onclick="viewFullImg(this.src)" class="w-full h-32 object-contain bg-black/60 rounded-2xl border border-white/5 cursor-pointer hover:border-blue-500/50 transition">
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="completeWithdraw('${child.key}')" class="flex-1 py-3 bg-blue-600 rounded-xl text-[9px] font-black uppercase tracking-wider shadow-lg shadow-blue-500/20">MARK PAID</button>
+                        <button onclick="rejectRequest('withdraw_requests', '${child.key}', '${w.uid}', ${w.amount})" class="flex-1 py-3 bg-red-600/10 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-wider border border-red-500/10">REJECT</button>
+                    </div>
+                </div>`;
+            }
+        });
+    });
+}
+    function completeWithdraw(rid) {
+        if(!confirm("Payout done? Image will be deleted.")) return;
+        db.ref(`withdraw_requests/${rid}`).update({ status: 'completed', screenshot: null }).then(() => alert("Paid & Database Cleared!"));
+    }
+
+    function rejectRequest(path, rid, uid = null, amount = 0) {
+        const reason = prompt("Enter Rejection Reason:");
+        if (reason) {
+            db.ref(`${path}/${rid}`).update({ status: 'rejected', reason: reason, screenshot: null }).then(() => {
+                if (path === 'withdraw_requests' && uid) db.ref(`users/${uid}/points`).transaction(c => (c || 0) + Number(amount));
+                alert("Rejected & Screenshot Removed!");
+            });
+        }
+    }
+
+    // --- DATABASE CLEANUP BUTTON LOGIC ---
+    async function wipeAllScreenshots() {
+    if(!confirm("Wipe all old Base64 images to free database space? (This will clear memory)")) return;
+
+    const paths = ['deposit_requests', 'withdraw_requests'];
+    let count = 0;
+
+    for (const path of paths) {
+        try {
+            const snap = await db.ref(path).once('value');
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    const data = child.val();
+                    // Sirf unki photo delete hogi jo 'pending' nahi hain (Approved ya Rejected hain)
+                    if (data.status !== 'pending' && data.screenshot) {
+                        db.ref(`${path}/${child.key}/screenshot`).remove();
+                        count++;
+                    }
+                });
+            }
+        } catch (error) {
+            console.error(`Error cleaning ${path}:`, error);
+        }
+    }
+
+    // Results (Announcements) ki purani photos bhi saaf karne ke liye:
+    db.ref('results').once('value', snap => {
+        snap.forEach(child => {
+            // 24 ghante se purane results ki images delete karne ke liye
+            if (child.val().time < Date.now() - (24 * 60 * 60 * 1000)) {
+                db.ref(`results/${child.key}/img`).remove();
+                count++;
+            }
+        });
+    });
+
+    alert(`Cleanup Finished! Total ${count} heavy images removed from Database.`);
+}
+    // --- OTHER UTILITIES ---
+    function uploadResult() {
+        const winner = document.getElementById('res-winner-name').value;
+        const match = document.getElementById('res-match-name').value;
+        const file = document.getElementById('res-img').files[0];
+        if(!winner || !file) return alert("Winner & Image Required!");
+        const reader = new FileReader(); reader.readAsDataURL(file);
+        reader.onload = () => {
+            db.ref('results').push({ winner, match, img: reader.result, time: Date.now() }).then(() => alert("Result Announced!"));
+        };
+    }
+
+    function viewPlayers(mid) {
+        db.ref(`tournaments/${mid}/players`).once('value', snap => {
+            const list = document.getElementById('player-list-content'); list.innerHTML = ""; let count = 0;
+            snap.forEach(p => { count++; const pd = p.val();
+                list.innerHTML += `<div class="glass-card p-4 rounded-xl flex justify-between items-center"><div><p class="text-white text-xs font-bold uppercase">${pd.ign}</p><p class="text-[9px] text-gray-500">${pd.uid}</p></div><button onclick="db.ref('tournaments/${mid}/players/${p.key}').remove()" class="text-red-500"><i class="fa fa-times"></i></button></div>`;
+            });
+            document.getElementById('player-count-display').innerText = count + " Registered";
+            document.getElementById('player-modal').classList.remove('hidden');
+        });
+    }
+
+    function openKillManager(mid, name, pk) {
+        db.ref(`tournaments/${mid}/players`).once('value', snap => {
+            const list = document.getElementById('kill-list-content'); list.innerHTML = ""; 
+            document.getElementById('kill-match-title').innerText = name;
+            snap.forEach(p => { const pd = p.val();
+                list.innerHTML += `<div class="glass-card p-4 rounded-xl flex items-center gap-4"><p class="text-xs text-white uppercase flex-1">${pd.ign}</p><input type="number" id="kill-${p.key}" placeholder="Kills" class="w-16 p-2 rounded-lg text-xs outline-none"><button onclick="saveKill('${mid}', '${pd.uid}', '${p.key}', ${pk})" class="bg-green-600 px-3 py-2 rounded-lg text-[9px] font-bold">ADD</button></div>`;
+            });
+            document.getElementById('kill-modal').classList.remove('hidden');
+        });
+    }
+
+    function saveKill(mid, uid, pkey, pk) {
+        const kc = document.getElementById(`kill-${pkey}`).value;
+        const rew = Number(kc) * pk;
+        if(rew > 0) { db.ref(`users/${uid}/points`).transaction(c => (c||0) + rew); alert("Reward Sent!"); }
+    }
+
+   function viewProofWin(mid) {
+    const container = document.getElementById('proof-list-content');
+    container.innerHTML = `<p class="text-center text-blue-400 font-game text-[10px] animate-pulse">FETCHING WIN PROOFS...</p>`;
+    document.getElementById('proof-modal').classList.remove('hidden');
+
+    db.ref('win_proofs').once('value', snap => {
+        container.innerHTML = ""; 
+        let found = false;
+        
+        snap.forEach(child => {
+            const p = child.val();
+            // Match ID check
+            if (String(p.matchId) === String(mid)) {
+                found = true;
+                
+                // User Details (Fallback if missing)
+                const uName = p.userName || "Unknown Player";
+                const uEmail = p.email || "No Gmail Found";
+                const uPhoto = p.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+
+                container.innerHTML += `
+                <div class="glass-card p-4 rounded-[2rem] border border-white/5 mb-4 shadow-xl">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="${uPhoto}" class="w-8 h-8 rounded-full border border-blue-500/30 object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white text-[10px] font-black uppercase truncate">${uName}</p>
+                            <p class="text-blue-400 text-[8px] truncate">${uEmail}</p>
+                        </div>
+                    </div>
+
+                    <div class="relative group mb-3">
+                        <img src="${p.screenshot}" 
+                             class="w-full h-40 object-cover rounded-2xl border border-white/10 cursor-pointer transition active:scale-95" 
+                             onclick="viewFullImg(this.src)">
+                        <div class="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded-lg text-[7px] text-white backdrop-blur-md">CLICK TO VIEW</div>
+                    </div>
+
+                    <button onclick="if(confirm('Delete this proof?')) db.ref('win_proofs/${child.key}').remove().then(()=>viewProofWin('${mid}'))" 
+                            class="w-full py-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 text-[8px] font-black uppercase rounded-xl border border-red-500/10 transition">
+                        Wipe This Proof
+                    </button>
+                </div>`;
+            }
+        });
+        
+        if(!found) {
+            container.innerHTML = `
+                <div class="py-10 text-center">
+                    <i class="fa fa-folder-open text-gray-700 text-3xl mb-2"></i>
+                    <p class='text-gray-500 text-[10px] uppercase font-bold tracking-widest'>No Proofs Found For This Match</p>
+                </div>`;
+        }
+    });
+}
+   function fetchCurrentQR() { db.ref('admin_settings/qr').on('value', snap => { if(snap.exists()) document.getElementById('current-qr-preview').src = snap.val(); }); }
+    function updateSystemQR() {
+        const file = document.getElementById('adm-qr-input').files[0]; if(!file) return;
+        const reader = new FileReader(); reader.readAsDataURL(file);
+        reader.onload = () => { db.ref('admin_settings/qr').set(reader.result).then(() => alert("QR Updated!")); };
+    }
+    function viewFullImg(src) { document.getElementById('full-view-img').src = src; document.getElementById('img-viewer').classList.remove('hidden'); }
+    function openAnn() { const msg = prompt("Write Global Announcement:"); if(msg) db.ref('announcements').set({message:msg, time:Date.now()}); }
+</script>
+</body>
+</html>
