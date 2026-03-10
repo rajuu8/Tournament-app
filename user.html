@@ -383,7 +383,22 @@
     });
 }
     // --- MATCHES ---
- function loadMatches() {
+function loadMatches() {
+    // --- Helper function to fix time format ---
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "Upcoming";
+        try {
+            const date = new Date(timeStr);
+            return date.toLocaleString('en-IN', { 
+                day: '2-digit', 
+                month: 'short', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+            });
+        } catch (e) { return timeStr; }
+    };
+
     db.ref('tournaments').on('value', snap => {
         const list = document.getElementById('tour-list'); 
         list.innerHTML = "";
@@ -397,7 +412,6 @@
             const t = child.val();
             let myEntry = false;
             
-            // Check if current user is joined
             if(t.players && auth.currentUser) {
                 Object.values(t.players).forEach(p => { 
                     if(p.uid === auth.currentUser.uid) myEntry = true; 
@@ -407,12 +421,13 @@
             const pCount = t.players ? Object.keys(t.players).length : 0;
             const progressWidth = (pCount / t.slots) * 100;
             
-            // --- Badges & Info ---
-            const matchTime = t.time ? `<span class="bg-blue-600/20 px-3 py-1 rounded-full text-blue-400 text-[9px] font-bold"><i class="fa fa-clock mr-1"></i>${t.time}</span>` : "";
+            // --- TIME FORMAT APPLIED HERE ---
+            const displayTime = formatTime(t.time);
+            const matchTime = t.time ? `<span class="bg-blue-600/20 px-3 py-1 rounded-full text-blue-400 text-[9px] font-bold"><i class="fa fa-clock mr-1"></i>${displayTime}</span>` : "";
+            
             const matchType = `<span class="bg-yellow-500 text-black px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter">${t.type || 'SOLO'}</span>`;
             const matchMap = `<span class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold text-white uppercase border border-white/10">${t.map || 'BERMUDA'}</span>`;
             
-            // --- ID/PASS Display Logic ---
             let roomInfoHtml = "";
             if(myEntry && (t.status === 'live' || t.status === 'started')) {
                 roomInfoHtml = `
@@ -431,7 +446,6 @@
                 </div>`;
             }
 
-            // --- Button Logic ---
             let btnHtml = "";
             if(myEntry) {
                 btnHtml = `
@@ -445,19 +459,15 @@
                 btnHtml = `<button onclick="openJoinModal('${child.key}', ${t.fee})" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-[11px] uppercase shadow-lg shadow-blue-600/30 transition-transform active:scale-95">Join Match • ₹${t.fee}</button>`;
             }
             
-            // --- Final UI Card Rendering ---
             list.innerHTML += `
             <div class="bg-slate-900/60 rounded-[2.5rem] border border-white/5 overflow-hidden mb-8 shadow-2xl backdrop-blur-sm">
-                
                 <div class="relative h-44 w-full">
                     <img src="${t.img || 'https://via.placeholder.com/400x200/0f172a/blue?text=FREE+FIRE'}" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
-                    
                     <div class="absolute top-4 left-5 flex gap-2">
                         ${matchType}
                         ${matchMap}
                     </div>
-
                     <div class="absolute bottom-4 left-5 flex gap-2">
                         ${matchTime}
                         <span class="bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-bold uppercase ${t.status === 'live' ? 'text-green-500' : 'text-gray-400'}">
@@ -465,10 +475,8 @@
                         </span>
                     </div>
                 </div>
-
                 <div class="p-5">
                     <h3 class="text-xl font-game italic uppercase text-white mb-4 tracking-tight">${t.name}</h3>
-                    
                     <div class="grid grid-cols-3 gap-2 mb-5 text-center">
                         <div class="bg-white/5 py-2 rounded-xl border border-white/5">
                             <p class="text-[6px] text-gray-500 uppercase font-bold tracking-widest">Prize</p>
@@ -483,7 +491,6 @@
                             <p class="text-[10px] text-yellow-500 font-bold italic">₹${t.fee}</p>
                         </div>
                     </div>
-
                     <div class="mb-5 px-1">
                         <div class="flex justify-between text-[8px] font-bold mb-1.5 uppercase text-gray-400 tracking-widest">
                             <span>Filled: ${pCount}/${t.slots}</span>
@@ -493,7 +500,6 @@
                             <div class="h-full bg-blue-600 rounded-full transition-all duration-700" style="width: ${progressWidth}%"></div>
                         </div>
                     </div>
-
                     ${roomInfoHtml}
                     ${btnHtml}
                 </div>
@@ -501,6 +507,7 @@
         });
     });
 }
+
 function openJoinModal(id, fee) { tempMatchId = id; activeMatchFee = fee; openModal('rules-modal'); }
     function acceptRules() { closeModal('rules-modal'); activeMatchId = tempMatchId; document.getElementById('reg-fee-info').innerText = "Joining Fee: " + activeMatchFee + " Pts"; openModal('reg-modal'); }
     
