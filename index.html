@@ -710,11 +710,30 @@ function loadWithdraws() {
         });
     }
 
-    function saveKill(mid, uid, pkey, pk) {
-        const kc = document.getElementById(`kill-${pkey}`).value;
-        const rew = Number(kc) * pk;
-        if(rew > 0) { db.ref(`users/${uid}/points`).transaction(c => (c||0) + rew); alert("Reward Sent!"); }
-    }
+   function saveKill(mid, uid, pkey, pk) {
+    const killInput = document.getElementById(`kill-${pkey}`);
+    const kc = killInput.value;
+    if(!kc || kc < 0) return alert("Enter valid kills!");
+    
+    const rew = Number(kc) * pk;
+    
+    // Check if already rewarded (Internal Logic)
+    db.ref(`tournaments/${mid}/players/${pkey}/status`).once('value', snap => {
+        if(snap.val() === 'paid') return alert("Already rewarded!");
+        
+        if(rew > 0) { 
+            db.ref(`users/${uid}/points`).transaction(c => (c||0) + rew);
+            // Mark as paid in tournament node
+            db.ref(`tournaments/${mid}/players/${pkey}`).update({
+                status: 'paid',
+                kills: kc,
+                earned: rew
+            });
+            alert(`₹${rew} sent to user!`);
+            killInput.disabled = true;
+        }
+    });
+}
 
    function viewProofWin(mid) {
     const container = document.getElementById('proof-list-content');

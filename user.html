@@ -85,11 +85,11 @@
             <div class="grid grid-cols-2 gap-4 mb-8">
                 <div class="bg-blue-600/10 border border-blue-500/20 p-4 rounded-2xl text-center">
                     <p class="text-[10px] text-blue-400 font-bold uppercase mb-1 tracking-wider">Matches Played</p>
-                    <h4 id="stat-total" class="text-2xl font-black italic">0- WE WILL FIX SOON</h4>
+                    <h4 id="stat-total" class="text-2xl font-black italic">0</h4>
                 </div>
                 <div class="bg-green-600/10 border border-green-500/20 p-4 rounded-2xl text-center">
                     <p class="text-[10px] text-green-400 font-bold uppercase mb-1 tracking-wider">Total Wins</p>
-                    <h4 id="stat-wins" class="text-2xl font-black italic text-green-500">0- WE WILL FIX SOON</h4>
+                    <h4 id="stat-wins" class="text-2xl font-black italic text-green-500">0</h4>
                 </div>
             </div>
 
@@ -280,35 +280,56 @@
         }).catch(err => alert(err.message));
     }
 
-  auth.onAuthStateChanged(user => {
+   auth.onAuthStateChanged(user => {
     if(user) {
-        // 1. Pehle Admin ki identity verify karo (Security ke liye)
-        // Yahan apni Admin Email ID daal sakte ho
-        console.log("Admin Logged In:", user.email);
+        // UI screens switch karna
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
 
-        // 2. UI ko Admin mode mein switch karo
-        if(document.getElementById('auth-screen')) document.getElementById('auth-screen').classList.add('hidden');
-        if(document.getElementById('app-screen')) document.getElementById('app-screen').classList.remove('hidden');
+        // --- DATABASE SYNC START ---
+        const userRef = db.ref('users/' + user.uid);
+        
+        // Pehle check karo database mein kya hai
+        userRef.once('value').then(snap => {
+            const d = snap.val();
+            
+            // Database update karo taaki Admin Panel ko data mile
+            userRef.update({
+                uid: user.uid,
+                email: user.email, // Ye Admin Panel mein 'No Gmail Found' theek karega
+                // Agar user ka naam database mein nahi hai, toh Gmail ka pehla part use karo
+                name: (d && d.name) ? d.name : (user.displayName || user.email.split('@')[0]),
+                // Agar photo nahi hai toh default icon
+                photo: (d && d.photo) ? d.photo : (user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png")
+            });
+        });
+        // --- DATABASE SYNC END ---
 
-        // 3. --- SAARA DATA AB LOAD KARO ---
-        // Jab login ho gaya, tabhi permission milegi
-        loadMatches(); 
-        loadDeposits(); 
-        loadWithdraws(); 
-        fetchCurrentQR(); 
-        loadLeaderboard();
+        // Real-time listener: User ki apni profile update karne ke liye
+        userRef.on('value', snap => {
+            const d = snap.val();
+            if(d) {
+                if(document.getElementById('u-name')) document.getElementById('u-name').innerText = d.name;
+                if(document.getElementById('u-email')) document.getElementById('u-email').innerText = d.email;
+                
+                userPoints = d.points || 0;
+                if(document.getElementById('top-pts')) document.getElementById('top-pts').innerText = userPoints;
+                if(document.getElementById('main-pts')) document.getElementById('main-pts').innerText = userPoints;
 
-        // 4. Sabhi users ka data Admin ko chahiye hota hai (Winner select karne ke liye)
-        db.ref('users').on('value', snap => {
-            window.allUsers = snap.val() || {}; // Global variable taaki har jagah use ho sake
+                if(d.photo) {
+                    if(document.getElementById('u-img')) document.getElementById('u-img').src = d.photo;
+                    if(document.getElementById('u-img-large')) document.getElementById('u-img-large').src = d.photo;
+                }
+            }
         });
 
+        loadMatches(); loadAdminQR(); loadAnnouncements(); loadResults(); loadHistory(); loadLeaderboard();
     } else {
-        // Agar login nahi hai, toh wapas bhej do
-        if(document.getElementById('auth-screen')) document.getElementById('auth-screen').classList.remove('hidden');
-        if(document.getElementById('app-screen')) document.getElementById('app-screen').classList.add('hidden');
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('app-screen').classList.add('hidden');
     }
 });
+   
     // --- HALL OF FAME (ADMIN CONNECTED) ---
     function loadLeaderboard() {
     // Sabse zyada 'winnings' waale top 10 users uthayenge
