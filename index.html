@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FF Admin - Master Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .font-game { font-family: 'Orbitron', sans-serif; }
+        body { background: #050810; color: #e2e8f0; }
+        .glass-card { background: rgba(255,255,255,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.06); }
+        .neon-border { border: 1px solid rgba(59,130,246,0.3); box-shadow: 0 0 20px rgba(59,130,246,0.08); }
+        .nav-active { color: #3b82f6 !important; }
+        .nav-active i { filter: drop-shadow(0 0 6px rgba(59,130,246,0.5)); }
+        input, select, textarea { background: rgba(0,0,0,0.4) !important; border: 1px solid rgba(255,255,255,0.08) !important; color: white !important; }
+        input::placeholder, textarea::placeholder { color: rgba(148,163,184,0.4) !important; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { display: none; }
+
+        /* Toggle Switch */
+        .toggle-wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; }
+        .toggle-label { font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+        .toggle-sub { font-size: 9px; color: rgba(148,163,184,0.4); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .toggle-switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 50px; cursor: pointer; transition: background 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+        .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: rgba(255,255,255,0.4); border-radius: 50%; transition: transform 0.3s, background 0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background: #2563eb; border-color: rgba(59,130,246,0.5); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); background: white; }
+        .toggle-switch.green input:checked + .toggle-slider { background: #059669; border-color: rgba(5,150,105,0.5); }
+        .toggle-switch.yellow input:checked + .toggle-slider { background: #d97706; border-color: rgba(217,119,6,0.5); }
+
+        .free-badge { background: rgba(5,150,105,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.2); font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .ads-badge { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .section-label { font-size: 9px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(148,163,184,0.4); margin-bottom: 10px; padding: 0 2px; }
+        .info-box { background: rgba(59,130,246,0.05); border: 1px solid rgba(59,130,246,0.12); border-radius: 12px; padding: 10px 14px; font-size: 10px; color: rgba(148,163,184,0.6); line-height: 1.6; }
+        .info-box strong { color: #60a5fa; font-weight: 700; }
+
+        /* Rank badge styles for weekly leaderboard */
+        .rank-1 { background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(234,179,8,0.05)); border-color: rgba(234,179,8,0.3); }
+        .rank-2 { background: linear-gradient(135deg, rgba(148,163,184,0.1), rgba(148,163,184,0.03)); border-color: rgba(148,163,184,0.2); }
+        .rank-3 { background: linear-gradient(135deg, rgba(234,137,12,0.12), rgba(234,137,12,0.03)); border-color: rgba(234,137,12,0.2); }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-box" class="fixed inset-0 bg-[#050810] z-[9999] flex items-center justify-center p-6">
+    <div class="w-full max-w-xs">
+        <div class="text-center mb-10">
+            <div class="w-20 h-20 bg-blue-600 rounded-[1.5rem] mx-auto mb-5 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.3)]">
+                <i class="fa fa-shield-halved text-3xl text-white"></i>
+            </div>
+            <h1 class="font-game text-xl font-bold tracking-widest text-white">MASTER <span class="text-blue-500">CORE</span></h1>
+            <p class="text-slate-500 text-[9px] mt-2 uppercase tracking-[0.4em]">Tournament Authority</p>
+        </div>
+        <div class="glass-card p-6 rounded-[2rem] space-y-3">
+            <input type="text" id="adm-id" placeholder="Admin Identity" class="w-full p-4 rounded-xl outline-none text-sm font-medium focus:border-blue-500 transition-all">
+            <input type="password" id="adm-pass" placeholder="Secret Key" class="w-full p-4 rounded-xl outline-none text-sm font-medium focus:border-blue-500 transition-all" onkeydown="if(event.key==='Enter') adminAuth()">
+            <button onclick="adminAuth()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-game font-bold text-sm tracking-widest uppercase transition-all active:scale-[0.97] shadow-lg shadow-blue-900/40">INITIALIZE</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div id="admin-content" class="hidden min-h-screen pb-28">
+    <div class="px-5 py-4 flex justify-between items-center sticky top-0 bg-[#050810]/90 backdrop-blur-lg z-50 border-b border-white/5">
+        <div>
+            <p class="text-[9px] font-bold text-blue-500 uppercase tracking-[0.3em]">Dashboard</p>
+            <h2 id="page-title" class="font-game text-base text-white font-bold">OVERVIEW</h2>
+        </div>
+        <div class="flex gap-2.5">
+            <button onclick="openAnn()" class="w-9 h-9 glass-card rounded-xl flex items-center justify-center text-purple-400 hover:bg-white/5 transition-all">
+                <i class="fa fa-bullhorn text-sm"></i>
+            </button>
+            <button onclick="location.reload()" class="w-9 h-9 glass-card rounded-xl flex items-center justify-center text-red-400 hover:bg-white/5 transition-all">
+                <i class="fa fa-power-off text-sm"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="px-4 mt-5">
+
+        <!-- HOME TAB -->
+        <div id="tab-home" class="tab-content block">
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="glass-card p-5 rounded-[1.5rem] neon-border">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Tournaments</p>
+                    <h3 id="stat-matches" class="font-game text-2xl text-white">0</h3>
+                </div>
+                <div class="glass-card p-5 rounded-[1.5rem]">
+                    <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Pending Reqs</p>
+                    <h3 id="stat-reqs" class="font-game text-2xl text-yellow-400">0</h3>
+                </div>
+            </div>
+
+            <!-- Win Proofs Pending -->
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-1 h-4 bg-purple-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-purple-400 uppercase tracking-wider">Pending Win Proofs</h4>
+                <span id="proof-badge" class="bg-purple-500/20 text-purple-400 text-[8px] font-bold px-2 py-0.5 rounded-full border border-purple-500/20 hidden">0</span>
+            </div>
+            <div id="proof-pending-list" class="space-y-3 mb-6"></div>
+
+            <!-- Deposit Requests -->
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-1 h-4 bg-yellow-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-yellow-400 uppercase tracking-wider">Deposit Requests</h4>
+            </div>
+            <div id="deposit-list" class="space-y-3 mb-8"></div>
+
+            <!-- Announce Result -->
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-1 h-4 bg-emerald-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-emerald-400 uppercase tracking-wider">Announce Result</h4>
+            </div>
+            <div class="glass-card p-5 rounded-[2rem] space-y-3">
+                <select id="res-match-id" onchange="fetchPlayersForWinner(this.value)" class="w-full p-3.5 rounded-xl outline-none text-xs">
+                    <option value="">Select Match First</option>
+                </select>
+                <input id="res-winner-name" list="match-players" placeholder="Type or Select Winner Name" class="w-full p-3.5 rounded-xl outline-none text-xs">
+                <datalist id="match-players"></datalist>
+                <input type="hidden" id="res-match-name">
+                <div class="border border-dashed border-slate-700 rounded-xl p-3 text-center cursor-pointer hover:border-emerald-500/40 transition-all" onclick="document.getElementById('res-img').click()">
+                    <i class="fa fa-image text-slate-500 mb-1 block text-sm"></i>
+                    <p class="text-[10px] text-slate-500 font-medium" id="res-img-label">Upload Result Screenshot</p>
+                    <input type="file" id="res-img" accept="image/*" class="hidden" onchange="document.getElementById('res-img-label').textContent = this.files[0]?.name || 'Upload Result Screenshot'">
+                </div>
+                <!-- FIXED: button now has id="post-res-btn" so uploadResult() can find it -->
+                <button id="post-res-btn" onclick="uploadResult()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-game text-[10px] uppercase tracking-widest active:scale-[0.97] transition-all shadow-lg shadow-emerald-900/30">POST RESULT</button>
+            </div>
+        </div>
+
+        <!-- MATCHES TAB -->
+        <div id="tab-matches" class="tab-content">
+            <div class="flex justify-between items-center mb-5">
+                <div class="flex items-center gap-2">
+                    <span class="w-1 h-4 bg-blue-500 rounded-full"></span>
+                    <h4 class="font-game text-[10px] text-blue-400 uppercase tracking-wider">Manage Matches</h4>
+                </div>
+                <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">
+                    <i class="fa fa-plus mr-1.5"></i>Create
+                </button>
+            </div>
+            <div id="match-list" class="space-y-4 pb-10"></div>
+        </div>
+
+        <!-- USERS TAB -->
+        <div id="tab-users" class="tab-content">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-1 h-4 bg-blue-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-blue-400 uppercase tracking-wider">User Database</h4>
+                <span id="user-count-badge" class="text-[8px] text-slate-500 font-bold"></span>
+            </div>
+            <div class="relative mb-4">
+                <i class="fa fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" id="user-search" oninput="searchUsers()" placeholder="Search Name, Email..." class="w-full p-3.5 pl-11 rounded-xl outline-none text-xs focus:border-blue-500 transition-all">
+            </div>
+            <div id="master-user-list" class="space-y-3 pb-10"></div>
+        </div>
+
+        <!-- ============================================================
+             WEEKLY LEADERBOARD TAB — FULLY FIXED
+        ============================================================ -->
+        <div id="tab-leaderboard" class="tab-content">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-1 h-4 bg-yellow-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-yellow-400 uppercase tracking-wider">Weekly Leaderboard</h4>
+            </div>
+
+            <!-- Generate + Search panel -->
+            <div class="glass-card p-5 rounded-[1.5rem] mb-4 space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="generateWeeklyLeaderboard()" class="py-3.5 bg-blue-600 hover:bg-blue-500 rounded-xl font-game text-[9px] uppercase tracking-widest active:scale-[0.97] transition-all">
+                        <i class="fa fa-magic mr-1.5"></i>Auto-Generate
+                    </button>
+                    <button onclick="clearLeaderboard()" class="py-3.5 bg-red-600/20 text-red-400 border border-red-500/20 rounded-xl font-game text-[9px] uppercase tracking-widest active:scale-[0.97] transition-all">
+                        <i class="fa fa-trash mr-1.5"></i>Clear All
+                    </button>
+                </div>
+                <p class="text-[8px] text-slate-600 uppercase tracking-wider text-center">Auto-generate ranks by total winnings from users</p>
+                <div class="border-t border-white/5 pt-3">
+                    <p class="text-[9px] text-slate-500 uppercase font-bold tracking-wider mb-2">Add Player Manually</p>
+                    <div class="relative">
+                        <i class="fa fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" id="leader-search" oninput="searchForLeader()" placeholder="Search player to add..." class="w-full p-3 pl-10 rounded-xl outline-none text-xs focus:border-yellow-500 transition-all">
+                    </div>
+                    <div id="leader-search-results" class="space-y-2 mt-2"></div>
+                </div>
+            </div>
+
+            <!-- Leaderboard list -->
+            <div id="top-players-list" class="space-y-3 pb-10"></div>
+        </div>
+
+        <!-- WITHDRAW TAB -->
+        <div id="tab-withdraw" class="tab-content">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="w-1 h-4 bg-blue-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-blue-400 uppercase tracking-wider">Withdrawal Queue</h4>
+            </div>
+            <div id="withdraw-list" class="space-y-4 pb-10"></div>
+        </div>
+
+        <!-- SETTINGS TAB -->
+        <div id="tab-settings" class="tab-content">
+            <div class="flex items-center gap-2 mb-5">
+                <span class="w-1 h-4 bg-blue-500 rounded-full"></span>
+                <h4 class="font-game text-[10px] text-blue-400 uppercase tracking-wider">Core Config</h4>
+            </div>
+            <div class="glass-card p-6 rounded-[2rem] space-y-5">
+                <div class="text-center">
+                    <p class="section-label">Payment QR Code</p>
+                    <img id="current-qr-preview" src="https://via.placeholder.com/150" class="w-36 h-36 object-contain mx-auto bg-white p-2 rounded-xl mb-4">
+                    <input type="file" id="adm-qr-input" accept="image/*" class="hidden" onchange="document.getElementById('qr-file-label').textContent = this.files[0]?.name || 'Choose File'">
+                    <button id="qr-file-label" onclick="document.getElementById('adm-qr-input').click()" class="w-full py-3 bg-white/5 border border-white/8 rounded-xl text-[10px] font-bold uppercase mb-2.5 active:scale-[0.97] transition-all">Choose File</button>
+                    <button onclick="updateSystemQR()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-[10px] font-bold uppercase active:scale-[0.97] transition-all shadow-lg shadow-blue-900/30">Update QR</button>
+                </div>
+                <div class="border-t border-white/5 pt-5">
+                    <p class="section-label">Announcement</p>
+                    <textarea id="ann-text-input" placeholder="Global announcement message..." rows="3" class="w-full p-3 rounded-xl outline-none text-xs resize-none focus:border-blue-500 transition-all mb-2"></textarea>
+                    <button onclick="postAnnouncement()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-xl text-[10px] font-bold uppercase active:scale-[0.97] transition-all mb-4">Post Announcement</button>
+                </div>
+                <div class="border-t border-white/5 pt-5">
+                    <p class="section-label">Database Cleanup</p>
+                    <button onclick="wipeAllScreenshots()" class="w-full py-3.5 bg-red-600/80 hover:bg-red-600 rounded-xl text-[10px] font-bold uppercase active:scale-[0.97] transition-all">
+                        <i class="fa fa-trash-alt mr-2"></i>Wipe Old Screenshots (24h+)
+                    </button>
+                    <p class="text-[8px] text-slate-600 mt-2 text-center uppercase tracking-wider">Removes Base64 images from old requests</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-[#080c18]/95 backdrop-blur-2xl border-t border-white/5 px-3 py-3 flex justify-between items-center z-[100]">
+        <button onclick="switchTab('home', this)" class="flex flex-col items-center gap-1 nav-active min-w-[40px]">
+            <i class="fa fa-th-large text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Home</span>
+        </button>
+        <button onclick="switchTab('matches', this)" class="flex flex-col items-center gap-1 text-slate-500 min-w-[40px]">
+            <i class="fa fa-gamepad text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Matches</span>
+        </button>
+        <button onclick="switchTab('users', this)" class="flex flex-col items-center gap-1 text-slate-500 min-w-[40px]">
+            <i class="fa fa-users text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Users</span>
+        </button>
+        <button onclick="switchTab('leaderboard', this)" class="flex flex-col items-center gap-1 text-slate-500 min-w-[40px]">
+            <i class="fa fa-trophy text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Weekly</span>
+        </button>
+        <button onclick="switchTab('withdraw', this)" class="flex flex-col items-center gap-1 text-slate-500 min-w-[40px]">
+            <i class="fa fa-receipt text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Payouts</span>
+        </button>
+        <button onclick="switchTab('settings', this)" class="flex flex-col items-center gap-1 text-slate-500 min-w-[40px]">
+            <i class="fa fa-sliders text-lg"></i><span class="text-[7px] font-bold uppercase tracking-wider">Config</span>
+        </button>
+    </nav>
+</div>
+
+<!-- MATCH CREATE/EDIT MODAL -->
+<div id="m-modal" class="fixed inset-0 bg-black/95 hidden z-[999] overflow-y-auto p-4 flex items-start justify-center pt-6">
+    <div class="w-full max-w-lg glass-card p-6 rounded-[2.5rem] border-white/8 mb-10">
+        <h3 id="modal-title" class="font-game text-center text-blue-400 mb-6 tracking-widest uppercase text-sm">Match Entry</h3>
+        <input type="hidden" id="m-edit-id">
+        <div class="section-label">Basic Info</div>
+        <div class="space-y-3 mb-5">
+            <input id="m-name" placeholder="Tournament Title" class="w-full p-3.5 rounded-xl outline-none text-sm font-medium focus:border-blue-500 transition-all">
+            <input id="m-img" placeholder="Poster Image URL" class="w-full p-3.5 rounded-xl outline-none text-sm font-medium focus:border-blue-500 transition-all">
+            <div class="grid grid-cols-2 gap-3">
+                <input id="m-prize" placeholder="Prize Pool (₹)" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+                <input id="m-slots" type="number" placeholder="Max Slots" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+            </div>
+            <input id="m-time" type="datetime-local" class="w-full p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+            <div class="grid grid-cols-2 gap-3">
+                <select id="m-type" class="p-3.5 rounded-xl outline-none text-sm">
+                    <option value="SOLO">SOLO</option>
+                    <option value="DUO">DUO</option>
+                    <option value="SQUAD">SQUAD</option>
+                </select>
+                <select id="m-map" class="p-3.5 rounded-xl outline-none text-sm">
+                    <option value="Bermuda">Bermuda</option>
+                    <option value="Purgatory">Purgatory</option>
+                    <option value="Classic-Squad">Classic Squad</option>
+                </select>
+            </div>
+        </div>
+        <div class="section-label">Entry Fee</div>
+        <div class="mb-5">
+            <div class="toggle-wrap mb-3">
+                <div>
+                    <div class="toggle-label">🆓 Free Match</div>
+                    <div class="toggle-sub">Entry fee = ₹0</div>
+                </div>
+                <label class="toggle-switch green">
+                    <input type="checkbox" id="m-is-free" onchange="handleFreeToggle(this)">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div id="fee-input-wrap">
+                <div class="grid grid-cols-2 gap-3">
+                    <input id="m-fee" placeholder="Entry Fee (₹)" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+                    <input id="m-per-kill" type="number" placeholder="Per Kill (₹)" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+                </div>
+            </div>
+        </div>
+        <div class="section-label">Ad Settings</div>
+        <div class="mb-5 space-y-3">
+            <div class="toggle-wrap">
+                <div>
+                    <div class="toggle-label">🔒 Ad Gate — Room ID</div>
+                    <div class="toggle-sub">Players watch ads to see Room ID</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="m-ad-gate-room">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="toggle-wrap">
+                <div>
+                    <div class="toggle-label">📸 Ad Gate — Proof Submit</div>
+                    <div class="toggle-sub">Players watch ads to submit proof</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="m-ad-gate-proof">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="info-box">
+                <strong>Free Match + Ad Gate:</strong> Free matches auto-require ads for Room ID. Enable for paid matches too for extra revenue.
+            </div>
+        </div>
+        <div class="section-label">Room Details</div>
+        <div class="space-y-3 mb-5">
+            <div class="grid grid-cols-2 gap-3">
+                <input id="m-room-id" placeholder="Room ID" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+                <input id="m-room-pass" placeholder="Room Password" class="p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+            </div>
+        </div>
+        <div class="section-label">Match Status</div>
+        <div class="mb-6">
+            <select id="m-status" class="w-full p-3.5 rounded-xl outline-none text-sm focus:border-blue-500 transition-all">
+                <option value="upcoming">Upcoming</option>
+                <option value="live">Live</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <button onclick="closeModal()" class="py-4 bg-white/5 hover:bg-white/8 rounded-xl font-game text-[10px] uppercase tracking-widest active:scale-[0.97] transition-all border border-white/5">Cancel</button>
+            <button onclick="saveMatch()" class="py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-game text-[10px] uppercase tracking-widest active:scale-[0.97] transition-all shadow-lg shadow-blue-900/30">Commit</button>
+        </div>
+    </div>
+</div>
+
+<!-- Leaderboard Stats Edit Modal -->
+<div id="leader-stats-modal" class="fixed inset-0 bg-black/95 hidden z-[3000] flex items-center justify-center p-6">
+    <div class="w-full max-w-xs glass-card p-7 rounded-[2rem] border-yellow-500/15">
+        <h3 class="font-game text-center text-yellow-400 mb-2 uppercase text-sm tracking-widest">Update Legend</h3>
+        <p id="leader-edit-name" class="text-center text-slate-400 text-xs mb-5"></p>
+        <input type="hidden" id="leader-uid">
+        <div class="space-y-3">
+            <input id="l-earnings" type="number" placeholder="Winnings (₹)" class="w-full p-3.5 rounded-xl outline-none text-sm">
+            <input id="l-won" type="number" placeholder="Win Count" class="w-full p-3.5 rounded-xl outline-none text-sm">
+            <input id="l-rank" type="text" placeholder="Rank Name (e.g. Legend)" class="w-full p-3.5 rounded-xl outline-none text-sm">
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-5">
+            <button onclick="document.getElementById('leader-stats-modal').classList.add('hidden')" class="py-3.5 bg-white/5 rounded-xl font-game text-[10px] uppercase active:scale-[0.97] transition-all">Back</button>
+            <button onclick="saveLeaderStats()" class="py-3.5 bg-yellow-500 text-black rounded-xl font-game text-[10px] uppercase font-bold active:scale-[0.97] transition-all">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Players Modal -->
+<div id="player-modal" class="fixed inset-0 bg-black/95 hidden z-[1000] p-5 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h3 id="player-count-display" class="font-game text-blue-400 text-sm">0 Players</h3>
+        <button onclick="document.getElementById('player-modal').classList.add('hidden')" class="w-9 h-9 glass-card rounded-xl flex items-center justify-center"><i class="fa fa-times text-slate-400"></i></button>
+    </div>
+    <div id="player-list-content" class="space-y-2.5 pb-10"></div>
+</div>
+
+<!-- Kill Manager Modal -->
+<div id="kill-modal" class="fixed inset-0 bg-black/95 hidden z-[1001] p-5 overflow-y-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h3 id="kill-match-title" class="font-game text-emerald-400 text-sm">Manage Kills</h3>
+        <button onclick="document.getElementById('kill-modal').classList.add('hidden')" class="w-9 h-9 glass-card rounded-xl flex items-center justify-center"><i class="fa fa-times text-slate-400"></i></button>
+    </div>
+    <p class="text-[9px] text-slate-500 uppercase mb-4">Kill rewards are paid once per player per match.</p>
+    <div id="kill-list-content" class="space-y-3 pb-10"></div>
+</div>
+
+<!-- Proof Viewer Modal -->
+<div id="proof-modal" class="fixed inset-0 bg-black/95 hidden z-[4000] p-5 overflow-y-auto">
+    <div class="flex justify-between items-center mb-5">
+        <h3 id="proof-modal-title" class="font-game text-xs text-blue-400 uppercase tracking-wider">Winner Proofs</h3>
+        <button onclick="document.getElementById('proof-modal').classList.add('hidden')" class="w-9 h-9 glass-card rounded-xl flex items-center justify-center"><i class="fa fa-times text-slate-400"></i></button>
+    </div>
+    <div id="proof-list-content" class="space-y-5 pb-20"></div>
+</div>
+
+<!-- Full Image Viewer -->
+<div id="img-viewer" class="fixed inset-0 bg-black/96 hidden z-[9999] p-5 flex items-center justify-center" onclick="this.classList.add('hidden')">
+    <img id="full-view-img" class="max-w-full max-h-[85vh] rounded-2xl border border-white/10">
+    <p class="absolute bottom-6 text-slate-500 text-xs">Tap anywhere to close</p>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCZz90P8npkRcL0ZctIelDFbKRN48BsZzk",
+        authDomain: "tracking-7494e.firebaseapp.com",
+        databaseURL: "https://tracking-7494e-default-rtdb.firebaseio.com",
+        projectId: "tracking-7494e",
+        storageBucket: "tracking-7494e.firebasestorage.app",
+        messagingSenderId: "861816870090",
+        appId: "1:861816870090:web:8ff2e307b1ea3c44d49033"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let allUsers = {};
+    let currentProofMatchId = null;
+
+    // ============================================================
+    //  AUTH
+    // ============================================================
+    function adminAuth() {
+        const id   = document.getElementById('adm-id').value.trim();
+        const pass = document.getElementById('adm-pass').value.trim();
+        if (!id || !pass) return alert("Enter credentials!");
+        db.ref('admin_settings').once('value', snap => {
+            const d = snap.val();
+            if (d && d.id === id && String(d.pass) === String(pass)) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                initSystem();
+            } else { alert("Wrong credentials!"); }
+        });
+    }
+
+    function initSystem() {
+        loadOverview();
+        loadMatches();
+        loadDeposits();
+        loadWithdraws();
+        loadUserManagement();
+        loadLeaderboard();
+        loadPendingProofs();
+        fetchCurrentQR();
+    }
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+        document.getElementById('tab-' + tabName).style.display = 'block';
+        document.querySelectorAll('nav button').forEach(b => { b.classList.remove('nav-active'); b.classList.add('text-slate-500'); });
+        btn.classList.add('nav-active');
+        btn.classList.remove('text-slate-500');
+        document.getElementById('page-title').innerText = tabName.toUpperCase();
+        if (tabName === 'leaderboard') loadLeaderboard();
+    }
+
+    // ============================================================
+    //  OVERVIEW
+    // ============================================================
+    function loadOverview() {
+        db.ref('tournaments').on('value', snap => document.getElementById('stat-matches').innerText = snap.numChildren());
+        db.ref('deposit_requests').on('value', snap => {
+            let p = 0;
+            snap.forEach(c => { if (c.val().status === 'pending') p++; });
+            document.getElementById('stat-reqs').innerText = p;
+        });
+    }
+
+    // ============================================================
+    //  PENDING WIN PROOFS on Home tab
+    // ============================================================
+    function loadPendingProofs() {
+        db.ref('win_proofs').on('value', snap => {
+            const list = document.getElementById('proof-pending-list');
+            const badge = document.getElementById('proof-badge');
+            let pending = [];
+            snap.forEach(c => { const d = c.val(); if (d.status === 'pending') pending.push({ key: c.key, ...d }); });
+            badge.textContent = pending.length;
+            if (pending.length > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+            if (!pending.length) {
+                list.innerHTML = `<p class="text-center text-slate-600 py-4 font-game text-[9px] tracking-wider uppercase">No Pending Proofs</p>`;
+                return;
+            }
+            list.innerHTML = pending.map(p => {
+                const photo = p.userPhoto || p.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                return `<div class="glass-card p-4 rounded-[1.5rem] border-l-4 border-purple-500">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="${photo}" class="w-10 h-10 rounded-xl object-cover border border-white/10 flex-shrink-0 bg-slate-800" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-white uppercase truncate">${p.userName || 'Player'}</p>
+                            <p class="text-[9px] text-purple-400">Match: ${p.matchId}</p>
+                        </div>
+                    </div>
+                    <img src="${p.screenshot}" onclick="viewFullImg(this.src)" class="w-full h-28 object-contain bg-black/40 rounded-xl border border-white/5 cursor-pointer mb-3">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="approvePendingProof('${p.key}')" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">✅ Mark Valid</button>
+                        <button onclick="db.ref('win_proofs/${p.key}').remove()" class="py-2.5 bg-red-600/15 text-red-400 border border-red-500/15 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">❌ Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        });
+    }
+
+    function approvePendingProof(key) {
+        db.ref('win_proofs/' + key).update({ status: 'approved' }).then(() => alert("✅ Proof marked valid!"));
+    }
+
+    // ============================================================
+    //  MATCH MANAGEMENT
+    // ============================================================
+    function handleFreeToggle(checkbox) {
+        const feeWrap = document.getElementById('fee-input-wrap');
+        const feeInput = document.getElementById('m-fee');
+        if (checkbox.checked) {
+            feeWrap.style.opacity = '0.4';
+            feeWrap.style.pointerEvents = 'none';
+            feeInput.value = '0';
+            document.getElementById('m-ad-gate-room').checked = true;
+        } else {
+            feeWrap.style.opacity = '1';
+            feeWrap.style.pointerEvents = 'auto';
+            if (feeInput.value === '0') feeInput.value = '';
+        }
+    }
+
+    function loadMatches() {
+        db.ref('tournaments').on('value', snap => {
+            const list   = document.getElementById('match-list');
+            const select = document.getElementById('res-match-id');
+            list.innerHTML = "";
+            if (select) select.innerHTML = '<option value="">Select Match First</option>';
+            if (!snap.exists()) {
+                list.innerHTML = `<p class="text-center text-slate-600 py-8 font-game text-[9px] tracking-wider uppercase">No Matches Found</p>`;
+                return;
+            }
+            snap.forEach(child => {
+                const t = child.val();
+                const isFree    = !t.fee || parseInt(t.fee) === 0;
+                const hasAdGate = t.adGateRoom || t.adGateProof;
+                const pCount    = t.players ? Object.keys(t.players).length : 0;
+                const statusColor = t.status === 'live' ? 'text-emerald-400' : t.status === 'upcoming' ? 'text-blue-400' : 'text-slate-500';
+                list.innerHTML += `<div class="glass-card p-5 rounded-[2rem] mb-4">
+                    <div class="flex gap-3 mb-4">
+                        <img src="${t.img || 'https://via.placeholder.com/300/05080f/1e40af'}" class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="font-game text-xs text-white truncate uppercase">${t.name}</p>
+                            <p class="text-[9px] ${statusColor} font-bold uppercase mt-0.5">${t.status}</p>
+                            <div class="flex gap-1.5 mt-1.5 flex-wrap">
+                                <span class="bg-blue-600/15 text-blue-400 text-[8px] font-bold px-2 py-0.5 rounded-lg">${t.type || 'SOLO'}</span>
+                                ${isFree ? `<span class="free-badge">FREE</span>` : `<span class="bg-yellow-500/10 text-yellow-400 text-[8px] font-bold px-2 py-0.5 rounded-lg">₹${t.fee}</span>`}
+                                ${hasAdGate ? `<span class="ads-badge"><i class="fa fa-ad mr-1"></i>Ads</span>` : ''}
+                                <span class="bg-white/5 text-slate-400 text-[8px] font-bold px-2 py-0.5 rounded-lg">${pCount}/${t.slots || 0} joined</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button onclick="editMatch('${child.key}')" class="bg-white/5 hover:bg-white/8 py-3 rounded-xl text-xs text-slate-300 active:scale-[0.97] transition-all" title="Edit"><i class="fa fa-edit"></i></button>
+                        <button onclick="viewPlayers('${child.key}')" class="bg-blue-600/10 text-blue-400 py-3 rounded-xl text-xs active:scale-[0.97] transition-all" title="Players"><i class="fa fa-users"></i></button>
+                        <button onclick="openKillManager('${child.key}', '${(t.name||'').replace(/'/g,"\\'")}', ${t.perKill || 0})" class="bg-emerald-600/10 text-emerald-400 py-3 rounded-xl text-xs active:scale-[0.97] transition-all" title="Kills"><i class="fa fa-skull"></i></button>
+                        <button onclick="viewProofWin('${child.key}', '${(t.name||'').replace(/'/g,"\\'")}' )" class="bg-purple-600/10 text-purple-400 py-3 rounded-xl text-xs active:scale-[0.97] transition-all" title="Proofs"><i class="fa fa-check-double"></i></button>
+                        <button onclick="deleteMatch('${child.key}')" class="col-span-4 mt-1 bg-red-600/8 text-red-400/70 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest active:scale-[0.97] transition-all border border-red-500/10">Delete Match</button>
+                    </div>
+                </div>`;
+                if (select) select.innerHTML += `<option value="${child.key}">${t.name}</option>`;
+            });
+        });
+    }
+
+    function fetchPlayersForWinner(matchId) {
+        if (!matchId) return;
+        const datalist = document.getElementById('match-players');
+        datalist.innerHTML = "";
+        document.getElementById('res-match-name').value = "";
+        db.ref('tournaments/' + matchId).once('value', snap => {
+            const data = snap.val();
+            if (data) {
+                document.getElementById('res-match-name').value = data.name || '';
+                if (data.players) {
+                    Object.values(data.players).forEach(p => {
+                        datalist.innerHTML += `<option value="${p.ign}">`;
+                    });
+                }
+            }
+        });
+    }
+
+    function saveMatch() {
+        const id          = document.getElementById('m-edit-id').value;
+        const isFree      = document.getElementById('m-is-free').checked;
+        const adGateRoom  = document.getElementById('m-ad-gate-room').checked;
+        const adGateProof = document.getElementById('m-ad-gate-proof').checked;
+        const data = {
+            name:     document.getElementById('m-name').value.trim(),
+            img:      document.getElementById('m-img').value.trim() || "https://via.placeholder.com/400x200/05080f/1e40af?text=FF+ARENA",
+            prize:    document.getElementById('m-prize').value.trim(),
+            fee:      isFree ? 0 : (parseInt(document.getElementById('m-fee').value) || 0),
+            slots:    parseInt(document.getElementById('m-slots').value) || 100,
+            perKill:  parseInt(document.getElementById('m-per-kill').value) || 0,
+            time:     document.getElementById('m-time').value,
+            type:     document.getElementById('m-type').value,
+            map:      document.getElementById('m-map').value,
+            status:   document.getElementById('m-status').value,
+            roomId:   document.getElementById('m-room-id').value.trim(),
+            roomPass: document.getElementById('m-room-pass').value.trim(),
+            isFree:      isFree,
+            adGateRoom:  adGateRoom,
+            adGateProof: adGateProof
+        };
+        if (!data.name) return alert("Match name is required!");
+        if (id) {
+            db.ref('tournaments/' + id).update(data).then(() => { alert("✅ Match Updated!"); closeModal(); });
+        } else {
+            db.ref('tournaments').push(data).then(() => { alert("✅ Match Created!"); closeModal(); });
+        }
+    }
+
+    function editMatch(id) {
+        db.ref('tournaments/' + id).once('value', snap => {
+            const t = snap.val();
+            if (!t) return alert("Match not found!");
+            document.getElementById('m-edit-id').value    = id;
+            document.getElementById('m-name').value       = t.name || '';
+            document.getElementById('m-img').value        = t.img  || '';
+            document.getElementById('m-prize').value      = t.prize || '';
+            document.getElementById('m-fee').value        = t.fee  || '';
+            document.getElementById('m-slots').value      = t.slots || '';
+            document.getElementById('m-per-kill').value   = t.perKill || '';
+            document.getElementById('m-time').value       = t.time || '';
+            document.getElementById('m-type').value       = t.type || 'SOLO';
+            document.getElementById('m-map').value        = t.map  || 'Bermuda';
+            document.getElementById('m-status').value     = t.status || 'upcoming';
+            document.getElementById('m-room-id').value    = t.roomId   || '';
+            document.getElementById('m-room-pass').value  = t.roomPass || '';
+            const isFree = t.isFree || (!t.fee || parseInt(t.fee) === 0);
+            document.getElementById('m-is-free').checked      = isFree;
+            document.getElementById('m-ad-gate-room').checked  = t.adGateRoom  || false;
+            document.getElementById('m-ad-gate-proof').checked = t.adGateProof || false;
+            handleFreeToggle(document.getElementById('m-is-free'));
+            document.getElementById('modal-title').innerText = "Update Match";
+            document.getElementById('m-modal').classList.remove('hidden');
+            document.getElementById('m-modal').scrollTop = 0;
+        });
+    }
+
+    function deleteMatch(id) {
+        if (confirm("Permanently delete this match and all its players?")) {
+            db.ref('tournaments/' + id).remove().then(() => alert("✅ Deleted!"));
+        }
+    }
+
+    function openModal() {
+        ['m-edit-id','m-name','m-img','m-prize','m-slots','m-per-kill','m-time','m-fee','m-room-id','m-room-pass'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('m-is-free').checked      = false;
+        document.getElementById('m-ad-gate-room').checked  = false;
+        document.getElementById('m-ad-gate-proof').checked = false;
+        document.getElementById('m-type').value   = 'SOLO';
+        document.getElementById('m-map').value    = 'Bermuda';
+        document.getElementById('m-status').value = 'upcoming';
+        document.getElementById('fee-input-wrap').style.opacity      = '1';
+        document.getElementById('fee-input-wrap').style.pointerEvents = 'auto';
+        document.getElementById('modal-title').innerText = "New Tournament";
+        document.getElementById('m-modal').classList.remove('hidden');
+        document.getElementById('m-modal').scrollTop = 0;
+    }
+
+    function closeModal() { document.getElementById('m-modal').classList.add('hidden'); }
+
+    // ============================================================
+    //  USER MANAGEMENT
+    // ============================================================
+    function loadUserManagement() {
+        db.ref('users').on('value', snap => {
+            allUsers = snap.val() || {};
+            const count = Object.keys(allUsers).length;
+            const el = document.getElementById('user-count-badge');
+            if (el) el.textContent = `(${count} users)`;
+            renderUsers(allUsers);
+        });
+    }
+
+    function renderUsers(usersData) {
+        const list = document.getElementById('master-user-list');
+        const keys = Object.keys(usersData);
+        if (!keys.length) { list.innerHTML = `<p class="text-center text-slate-600 py-8 font-game text-[9px] tracking-wider uppercase">No Users Found</p>`; return; }
+        list.innerHTML = keys.map(uid => {
+            const u = usersData[uid];
+            const isBanned = u.status === 'banned';
+            const photo = u.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+            return `<div class="glass-card p-4 rounded-[1.5rem] border-l-4 ${isBanned ? 'border-red-500' : 'border-blue-500/50'} flex items-center gap-3">
+                <img src="${photo}" class="w-12 h-12 rounded-xl object-cover flex-shrink-0 bg-slate-800" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-game text-xs text-white truncate uppercase">${u.displayName || u.name || 'Unknown'}</h3>
+                    <p class="text-blue-400 text-[9px] font-medium truncate">${u.email || ''}</p>
+                    <p class="text-slate-600 text-[8px] mt-0.5">Played: ${u.totalMatches||0} · Wins: ${u.totalWins||0} · ₹${u.winnings||0}</p>
+                </div>
+                <div class="flex flex-col gap-2 items-end flex-shrink-0">
+                    <div class="flex items-center gap-1.5 bg-black/40 px-2 py-1.5 rounded-xl border border-white/5">
+                        <input type="number" id="coin-input-${uid}" value="${u.points || 0}" class="bg-transparent text-[11px] font-bold text-yellow-400 w-14 text-center outline-none">
+                        <button onclick="editCoins('${uid}')" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded-lg text-[8px] font-black uppercase active:scale-[0.97] transition-all">Save</button>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="addWinnings('${uid}')" class="bg-emerald-600/15 text-emerald-400 border border-emerald-500/15 p-1.5 rounded-lg text-[9px] active:scale-[0.97] transition-all" title="Add Winnings">
+                            <i class="fa fa-trophy"></i>
+                        </button>
+                        <button onclick="toggleBan('${uid}', ${isBanned})" class="${isBanned ? 'bg-emerald-600/15 text-emerald-400 border-emerald-500/15' : 'bg-red-600/15 text-red-400 border-red-500/15'} p-1.5 rounded-lg text-[9px] border active:scale-[0.97] transition-all">
+                            <i class="fa ${isBanned ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function searchUsers() {
+        const q = document.getElementById('user-search').value.toLowerCase().trim();
+        if (!q) { renderUsers(allUsers); return; }
+        const filtered = {};
+        Object.keys(allUsers).forEach(id => {
+            const u = allUsers[id];
+            const name = (u.displayName || u.name || '').toLowerCase();
+            const email = (u.email || '').toLowerCase();
+            if (name.includes(q) || email.includes(q) || id.toLowerCase().includes(q)) filtered[id] = u;
+        });
+        renderUsers(filtered);
+    }
+
+    function editCoins(uid) {
+        const val = parseInt(document.getElementById(`coin-input-${uid}`).value);
+        if (isNaN(val) || val < 0) return alert("Enter valid amount!");
+        db.ref(`users/${uid}/points`).set(val).then(() => alert("✅ Points Updated!"));
+    }
+
+    function addWinnings(uid) {
+        const amt = prompt(`Add winnings for ${allUsers[uid]?.name || uid}:`);
+        if (!amt || isNaN(amt) || parseInt(amt) <= 0) return;
+        db.ref(`users/${uid}/winnings`).transaction(w => (w || 0) + parseInt(amt));
+        db.ref(`users/${uid}/totalWins`).transaction(w => (w || 0) + 1);
+        alert(`✅ ₹${amt} added to winnings!`);
+    }
+
+    function toggleBan(uid, isB) {
+        db.ref('users/' + uid).update({ status: isB ? 'active' : 'banned' })
+            .then(() => alert(isB ? "✅ User unbanned!" : "🚫 User banned!"));
+    }
+
+    // ============================================================
+    //  WEEKLY LEADERBOARD — FULLY FIXED
+    // ============================================================
+    function loadLeaderboard() {
+        db.ref('leaderboard').on('value', snap => {
+            const list = document.getElementById('top-players-list');
+            list.innerHTML = "";
+            let entries = [];
+            if (snap.exists()) snap.forEach(c => entries.push({ key: c.key, ...c.val() }));
+            // Sort by winnings descending
+            entries.sort((a, b) => (b.winnings || 0) - (a.winnings || 0));
+            if (!entries.length) {
+                list.innerHTML = `<div class="text-center py-12 text-slate-600 font-game text-[9px] tracking-[0.2em] uppercase">No leaderboard data — generate or add players</div>`;
+                return;
+            }
+            list.innerHTML = entries.map((l, i) => {
+                const rank   = i + 1;
+                const rankUI = rank === 1 ? "👑" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+                return `<div class="glass-card p-4 rounded-2xl flex items-center gap-3 border ${rankClass}">
+                    <span class="font-game text-sm w-8 text-center flex-shrink-0">${rankUI}</span>
+                    <img src="${l.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" class="w-11 h-11 rounded-xl border border-white/10 object-cover flex-shrink-0 bg-slate-800" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-white uppercase truncate">${l.name || 'Player'}</p>
+                        <p class="text-[9px] text-slate-500 mt-0.5">${l.won || 0} Wins · ${l.rank || 'Legend'}</p>
+                        <p class="text-[10px] text-emerald-400 font-black">₹${l.winnings || 0}</p>
+                    </div>
+                    <div class="flex gap-1.5 flex-shrink-0">
+                        <button onclick="openLeaderEditor('${l.key}')" class="w-8 h-8 bg-yellow-500/10 rounded-xl flex items-center justify-center text-yellow-400 active:scale-[0.97] transition-all" title="Edit">
+                            <i class="fa fa-edit text-xs"></i>
+                        </button>
+                        <button onclick="removeFromLeaderboard('${l.key}')" class="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center text-red-400 active:scale-[0.97] transition-all" title="Remove">
+                            <i class="fa fa-trash text-xs"></i>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        });
+    }
+
+    // FIXED: was using db.ref('leaderboard/${c.key}').remove() inline which broke
+    function removeFromLeaderboard(key) {
+        if (confirm("Remove from leaderboard?")) {
+            db.ref('leaderboard/' + key).remove().then(() => alert("✅ Removed!"));
+        }
+    }
+
+    function clearLeaderboard() {
+        if (confirm("Clear entire leaderboard?")) {
+            db.ref('leaderboard').remove().then(() => alert("✅ Leaderboard cleared!"));
+        }
+    }
+
+    function searchForLeader() {
+        const q = document.getElementById('leader-search').value.toLowerCase().trim();
+        const results = document.getElementById('leader-search-results');
+        results.innerHTML = "";
+        if (q.length < 2) return;
+        let found = 0;
+        Object.keys(allUsers).forEach(uid => {
+            const u = allUsers[uid];
+            const name = (u.displayName || u.name || '').toLowerCase();
+            if (name.includes(q) && found < 6) {
+                found++;
+                results.innerHTML += `
+                    <div onclick="openLeaderEditor('${uid}')" class="flex items-center justify-between p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-yellow-600/10 active:scale-[0.97] transition-all border border-white/5 gap-3">
+                        <img src="${u.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" class="w-8 h-8 rounded-lg object-cover flex-shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        <span class="text-xs text-white flex-1 truncate">${u.displayName || u.name}</span>
+                        <span class="text-[9px] text-slate-500">₹${u.winnings || 0}</span>
+                        <i class="fa fa-plus-circle text-yellow-400 flex-shrink-0"></i>
+                    </div>`;
+            }
+        });
+        if (!found) results.innerHTML = `<p class="text-[9px] text-slate-600 text-center py-2">No users found</p>`;
+    }
+
+    // FIXED: now works for both existing leaderboard entries (by key) and users (by uid)
+    function openLeaderEditor(keyOrUid) {
+        document.getElementById('leader-uid').value = keyOrUid;
+        // Check if it's an existing leaderboard entry
+        db.ref('leaderboard/' + keyOrUid).once('value', snap => {
+            let existingData = snap.val();
+            // If not in leaderboard, get from users
+            const userData = allUsers[keyOrUid] || {};
+            const name = (existingData?.name) || userData.displayName || userData.name || 'Player';
+            document.getElementById('leader-edit-name').textContent = name;
+            document.getElementById('l-earnings').value = existingData?.winnings || userData.winnings || 0;
+            document.getElementById('l-won').value      = existingData?.won      || userData.totalWins || 0;
+            document.getElementById('l-rank').value     = existingData?.rank     || 'Legend';
+            document.getElementById('leader-stats-modal').classList.remove('hidden');
+        });
+    }
+
+    function saveLeaderStats() {
+        const keyOrUid = document.getElementById('leader-uid').value;
+        if (!keyOrUid) return alert("Error: no player selected");
+        const userData = allUsers[keyOrUid] || {};
+        // Try to get photo/name from existing leaderboard entry first
+        db.ref('leaderboard/' + keyOrUid).once('value', snap => {
+            const existing = snap.val() || {};
+            const name  = existing.name  || userData.displayName || userData.name  || 'Hero';
+            const photo = existing.photo || userData.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+            const data = {
+                uid:      existing.uid || keyOrUid,
+                name,
+                photo,
+                winnings: parseInt(document.getElementById('l-earnings').value) || 0,
+                won:      parseInt(document.getElementById('l-won').value)      || 0,
+                rank:     document.getElementById('l-rank').value.trim()        || 'Legend'
+            };
+            db.ref('leaderboard/' + keyOrUid).set(data).then(() => {
+                alert("✅ Legend Updated!");
+                document.getElementById('leader-stats-modal').classList.add('hidden');
+                document.getElementById('leader-search').value = '';
+                document.getElementById('leader-search-results').innerHTML = '';
+            });
+        });
+    }
+
+    function generateWeeklyLeaderboard() {
+        if (!confirm("Auto-generate top 10 by winnings from all users?")) return;
+        let pool = [];
+        Object.keys(allUsers).forEach(uid => {
+            const u = allUsers[uid];
+            if (parseInt(u.winnings || 0) > 0) {
+                pool.push({
+                    uid,
+                    name:     u.displayName || u.name || 'Player',
+                    photo:    u.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                    winnings: parseInt(u.winnings || 0),
+                    won:      u.totalWins || 0,
+                    rank:     "Legend"
+                });
+            }
+        });
+        if (!pool.length) return alert("No users with winnings found!\nAdd winnings from Users tab first.");
+        pool.sort((a, b) => b.winnings - a.winnings);
+        const finalData = {};
+        pool.slice(0, 10).forEach(p => finalData[p.uid] = p);
+        db.ref('leaderboard').set(finalData).then(() => alert(`✅ Weekly Ranking Live!\n${Object.keys(finalData).length} players ranked.`));
+    }
+
+    // ============================================================
+    //  PAYMENTS — DEPOSITS
+    // ============================================================
+    function loadDeposits() {
+        db.ref('deposit_requests').orderByChild('time').on('value', snap => {
+            const list = document.getElementById('deposit-list');
+            list.innerHTML = "";
+            let hasPending = false;
+            let items = [];
+            snap.forEach(child => { const r = child.val(); if (r.status === 'pending') items.push({ key: child.key, ...r }); });
+            items.reverse(); // newest first
+            if (!items.length) {
+                list.innerHTML = `<p class="text-center text-slate-600 py-6 font-game text-[9px] tracking-wider uppercase">No Pending Deposits</p>`;
+                return;
+            }
+            items.forEach(r => {
+                hasPending = true;
+                const photo = r.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                list.innerHTML += `<div class="glass-card p-4 rounded-[1.5rem] border-l-4 border-yellow-500">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <img src="${photo}" class="w-8 h-8 rounded-lg object-cover border border-white/10 bg-slate-800" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                            <div>
+                                <p class="text-[10px] text-white font-bold">${r.userName || ''}</p>
+                                <p class="text-[8px] text-slate-500">${r.email || ''}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-game text-lg text-white">₹${r.amount}</p>
+                            <p class="text-[7px] text-slate-600">${r.time ? new Date(r.time).toLocaleDateString() : ''}</p>
+                        </div>
+                    </div>
+                    ${r.screenshot ? `<button onclick="viewFullImg('${r.screenshot ? 'data' : ''}')" class="w-full mb-3">
+                        <img src="${r.screenshot}" onclick="viewFullImg(this.src)" class="w-full h-24 object-cover rounded-xl border border-white/10 cursor-pointer">
+                    </button>` : ''}
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="approvePoints('${r.key}', '${r.uid}', ${r.amount})" class="py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">✅ Approve</button>
+                        <button onclick="rejectRequest('deposit_requests', '${r.key}')" class="py-3 bg-red-600/10 text-red-400 border border-red-500/10 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">❌ Reject</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function approvePoints(rid, uid, amt) {
+        if (!confirm(`Approve ₹${amt} deposit?`)) return;
+        db.ref(`users/${uid}/points`).transaction(c => (c || 0) + Number(amt));
+        db.ref(`deposit_requests/${rid}`).update({ status: 'approved', screenshot: null })
+            .then(() => alert("✅ Approved & Points Added!"));
+    }
+
+    // ============================================================
+    //  PAYMENTS — WITHDRAWALS
+    // ============================================================
+    function loadWithdraws() {
+        db.ref('withdraw_requests').orderByChild('time').on('value', snap => {
+            const list = document.getElementById('withdraw-list');
+            list.innerHTML = "";
+            let items = [];
+            snap.forEach(child => { const w = child.val(); if (w.status === 'pending') items.push({ key: child.key, ...w }); });
+            items.reverse();
+            if (!items.length) {
+                list.innerHTML = `<p class="text-center text-slate-600 py-8 font-game text-[9px] tracking-wider uppercase">No Pending Withdrawals</p>`;
+                return;
+            }
+            items.forEach(w => {
+                const photo = w.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                list.innerHTML += `<div class="glass-card p-5 rounded-[2rem] border-l-4 border-blue-500">
+                    <div class="flex items-center gap-3 mb-4">
+                        <img src="${photo}" class="w-11 h-11 rounded-xl object-cover border border-white/8 bg-slate-800 flex-shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-bold text-white uppercase truncate">${w.userName || 'User'}</p>
+                            <p class="text-[9px] text-blue-400 truncate">${w.email || ''}</p>
+                        </div>
+                        <p class="font-game text-lg text-emerald-400 flex-shrink-0">₹${w.amount}</p>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-[7px] text-slate-600 uppercase tracking-wider text-center mb-2">UPI QR Code</p>
+                        <img src="${w.screenshot}" onclick="viewFullImg(this.src)" class="w-full h-28 object-contain bg-black/40 rounded-xl border border-white/5 cursor-pointer">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="completeWithdraw('${w.key}')" class="py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">✅ Mark Paid</button>
+                        <button onclick="rejectRequest('withdraw_requests', '${w.key}', '${w.uid}', ${w.amount})" class="py-3 bg-red-600/10 text-red-400 border border-red-500/10 rounded-xl text-[9px] font-black uppercase tracking-wider active:scale-[0.97] transition-all">❌ Reject</button>
+                    </div>
+                </div>`;
+            });
+        });
+    }
+
+    function completeWithdraw(rid) {
+        if (!confirm("Confirm payment done?")) return;
+        db.ref(`withdraw_requests/${rid}`).update({ status: 'completed', screenshot: null })
+            .then(() => alert("✅ Marked as Paid!"));
+    }
+
+    function rejectRequest(path, rid, uid = null, amount = 0) {
+        const reason = prompt("Rejection reason (shown to user):");
+        if (!reason) return;
+        db.ref(`${path}/${rid}`).update({ status: 'rejected', reason, screenshot: null }).then(() => {
+            if (path === 'withdraw_requests' && uid) {
+                db.ref(`users/${uid}/points`).transaction(c => (c || 0) + Number(amount));
+            }
+            alert("✅ Rejected!" + (path === 'withdraw_requests' ? " Points refunded." : ""));
+        });
+    }
+
+    // ============================================================
+    //  RESULT UPLOAD — FIXED: button reference was missing id
+    // ============================================================
+    function uploadResult() {
+        const winner    = document.getElementById('res-winner-name').value.trim();
+        const matchId   = document.getElementById('res-match-id').value;
+        const matchName = document.getElementById('res-match-name').value;
+        const file      = document.getElementById('res-img').files[0];
+        if (!winner)  return alert("Winner name required!");
+        if (!matchId) return alert("Select a match first!");
+        if (!file)    return alert("Upload result screenshot!");
+        const btn = document.getElementById('post-res-btn');
+        btn.innerText = "UPLOADING...";
+        btn.disabled = true;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            db.ref('results').push({
+                winner,
+                match: matchName || matchId,
+                matchId,
+                img: reader.result,
+                time: Date.now()
+            }).then(() => {
+                alert("✅ Result Announced!");
+                document.getElementById('res-winner-name').value = '';
+                document.getElementById('res-img').value = '';
+                document.getElementById('res-img-label').textContent = 'Upload Result Screenshot';
+                document.getElementById('res-match-id').value = '';
+            }).finally(() => {
+                btn.innerText = "POST RESULT";
+                btn.disabled = false;
+            });
+        };
+        reader.onerror = () => { alert("Image read error!"); btn.innerText = "POST RESULT"; btn.disabled = false; };
+    }
+
+    // ============================================================
+    //  PLAYERS & KILLS
+    // ============================================================
+    function viewPlayers(mid) {
+        db.ref(`tournaments/${mid}/players`).once('value', snap => {
+            const list = document.getElementById('player-list-content');
+            list.innerHTML = "";
+            let count = 0;
+            snap.forEach(p => {
+                count++;
+                const pd = p.val();
+                list.innerHTML += `<div class="glass-card p-3.5 rounded-xl flex justify-between items-center">
+                    <div>
+                        <p class="text-white text-xs font-bold uppercase">${pd.ign || 'Unknown'}</p>
+                        <p class="text-[9px] text-slate-500 mt-0.5 font-mono">${pd.gameUid || pd.uid || ''}</p>
+                        <p class="text-[8px] text-slate-600">${pd.joinedAt ? new Date(pd.joinedAt).toLocaleString() : ''}</p>
+                    </div>
+                    <button onclick="removePlayer('${mid}', '${p.key}')" class="w-8 h-8 bg-red-500/10 rounded-xl flex items-center justify-center text-red-400 active:scale-[0.97] transition-all">
+                        <i class="fa fa-times text-xs"></i>
+                    </button>
+                </div>`;
+            });
+            document.getElementById('player-count-display').innerText = count + " Registered Players";
+            document.getElementById('player-modal').classList.remove('hidden');
+        });
+    }
+
+    function removePlayer(mid, pkey) {
+        if (confirm("Remove this player?")) {
+            db.ref(`tournaments/${mid}/players/${pkey}`).remove()
+                .then(() => alert("✅ Player removed!"));
+        }
+    }
+
+    function openKillManager(mid, name, pk) {
+        db.ref(`tournaments/${mid}/players`).once('value', snap => {
+            const list = document.getElementById('kill-list-content');
+            list.innerHTML = "";
+            document.getElementById('kill-match-title').innerText = name + (pk > 0 ? ` · ₹${pk}/kill` : ' · No kill reward');
+            if (!snap.exists()) { list.innerHTML = `<p class="text-slate-600 text-center py-8 text-xs">No players joined</p>`; }
+            snap.forEach(p => {
+                const pd = p.val();
+                const isPaid = pd.status === 'paid';
+                list.innerHTML += `<div class="glass-card p-4 rounded-xl flex items-center gap-3">
+                    <p class="text-xs text-white uppercase flex-1 font-medium">${pd.ign || 'Player'}</p>
+                    ${isPaid
+                        ? `<span class="text-[9px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded-lg">Paid ₹${pd.earned || 0} (${pd.kills || 0}k)</span>`
+                        : `<input type="number" id="kill-${p.key}" placeholder="Kills" min="0" class="w-16 p-2 rounded-lg text-xs outline-none text-center">
+                           <button onclick="saveKill('${mid}', '${pd.uid}', '${p.key}', ${pk})" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg text-[9px] font-bold uppercase active:scale-[0.97] transition-all">Pay</button>`
+                    }
+                </div>`;
+            });
+            document.getElementById('kill-modal').classList.remove('hidden');
+        });
+    }
+
+    function saveKill(mid, uid, pkey, pk) {
+        const killInput = document.getElementById(`kill-${pkey}`);
+        const kc = parseInt(killInput.value);
+        if (isNaN(kc) || kc < 0) return alert("Enter valid kills (0 or more)!");
+        db.ref(`tournaments/${mid}/players/${pkey}/status`).once('value', snap => {
+            if (snap.val() === 'paid') return alert("Already rewarded!");
+            const rew = kc * pk;
+            if (rew > 0) db.ref(`users/${uid}/points`).transaction(c => (c || 0) + rew);
+            db.ref(`tournaments/${mid}/players/${pkey}`).update({ status: 'paid', kills: kc, earned: rew });
+            alert(rew > 0 ? `✅ ₹${rew} sent for ${kc} kills!` : `✅ Recorded (no reward — 0 kills or ₹0/kill)`);
+            killInput.disabled = true;
+        });
+    }
+
+    // ============================================================
+    //  PROOF VIEWER — FIXED: delete callback used stale closure
+    // ============================================================
+    function viewProofWin(mid, matchName) {
+        currentProofMatchId = mid;
+        const container = document.getElementById('proof-list-content');
+        const titleEl   = document.getElementById('proof-modal-title');
+        if (titleEl) titleEl.textContent = `Proofs — ${matchName || mid}`;
+        container.innerHTML = `<p class="text-center text-blue-400 font-game text-[9px] animate-pulse tracking-widest uppercase">Fetching Proofs...</p>`;
+        document.getElementById('proof-modal').classList.remove('hidden');
+        db.ref('win_proofs').once('value', snap => {
+            container.innerHTML = "";
+            let found = false;
+            snap.forEach(child => {
+                const p = child.val();
+                if (String(p.matchId) !== String(mid)) return;
+                found = true;
+                const photo     = p.userPhoto || p.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+                const proofKey  = child.key;
+                const statusBg  = p.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+                container.innerHTML += `<div class="glass-card p-4 rounded-[1.5rem]" id="proof-card-${proofKey}">
+                    <div class="flex items-center gap-3 mb-3">
+                        <img src="${photo}" class="w-9 h-9 rounded-xl border border-white/10 object-cover bg-slate-800" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white text-[10px] font-black uppercase truncate">${p.userName || 'Player'}</p>
+                            <p class="text-blue-400 text-[8px] truncate">${p.email || ''}</p>
+                        </div>
+                        <span class="text-[8px] font-bold px-2 py-0.5 rounded-full border ${statusBg} uppercase">${p.status || 'pending'}</span>
+                    </div>
+                    <img src="${p.screenshot}" class="w-full h-40 object-cover rounded-xl border border-white/5 cursor-pointer mb-3 active:scale-[0.98] transition-all" onclick="viewFullImg(this.src)">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="approveProof('${proofKey}')" class="py-2.5 bg-emerald-600/10 text-emerald-400 text-[8px] font-black uppercase rounded-xl border border-emerald-500/10 active:scale-[0.97] transition-all">
+                            ✅ Approve
+                        </button>
+                        <button onclick="deleteProof('${proofKey}')" class="py-2.5 bg-red-600/10 text-red-400 text-[8px] font-black uppercase rounded-xl border border-red-500/10 active:scale-[0.97] transition-all">
+                            🗑 Delete
+                        </button>
+                    </div>
+                </div>`;
+            });
+            if (!found) container.innerHTML = `<div class="py-12 text-center"><i class="fa fa-folder-open text-slate-700 text-3xl mb-3 block"></i><p class="text-slate-600 text-[9px] uppercase font-bold tracking-widest">No Proofs Submitted</p></div>`;
+        });
+    }
+
+    // FIXED: standalone functions instead of inline onclick with template literals
+    function approveProof(proofKey) {
+        db.ref('win_proofs/' + proofKey).update({ status: 'approved' }).then(() => {
+            alert("✅ Proof approved!");
+            const card = document.getElementById('proof-card-' + proofKey);
+            if (card) card.style.opacity = '0.5';
+        });
+    }
+
+    function deleteProof(proofKey) {
+        if (confirm("Delete this proof permanently?")) {
+            db.ref('win_proofs/' + proofKey).remove().then(() => {
+                const card = document.getElementById('proof-card-' + proofKey);
+                if (card) card.remove();
+                alert("✅ Deleted!");
+            });
+        }
+    }
+
+    // ============================================================
+    //  CLEANUP
+    // ============================================================
+    async function wipeAllScreenshots() {
+        if (!confirm("Wipe all non-pending screenshots to free database space?\nThis cannot be undone.")) return;
+        const paths = ['deposit_requests', 'withdraw_requests'];
+        let count = 0;
+        for (const path of paths) {
+            const snap = await db.ref(path).once('value');
+            if (snap.exists()) {
+                snap.forEach(child => {
+                    const d = child.val();
+                    if (d.status !== 'pending' && d.screenshot) {
+                        db.ref(`${path}/${child.key}/screenshot`).remove();
+                        count++;
+                    }
+                });
+            }
+        }
+        // Wipe old result images (older than 24h)
+        const resultSnap = await db.ref('results').once('value');
+        if (resultSnap.exists()) {
+            resultSnap.forEach(child => {
+                const d = child.val();
+                if (d.time && (Date.now() - d.time) > 86400000 && d.img) {
+                    db.ref(`results/${child.key}/img`).remove();
+                    count++;
+                }
+            });
+        }
+        // Wipe old win proof screenshots
+        const proofSnap = await db.ref('win_proofs').once('value');
+        if (proofSnap.exists()) {
+            proofSnap.forEach(child => {
+                const d = child.val();
+                if (d.status === 'approved' && d.screenshot) {
+                    db.ref(`win_proofs/${child.key}/screenshot`).remove();
+                    count++;
+                }
+            });
+        }
+        alert(`✅ Cleanup done! ${count} images removed.`);
+    }
+
+    // ============================================================
+    //  SETTINGS
+    // ============================================================
+    function fetchCurrentQR() {
+        db.ref('admin_settings/qr').on('value', snap => {
+            if (snap.exists()) document.getElementById('current-qr-preview').src = snap.val();
+        });
+    }
+
+    function updateSystemQR() {
+        const file = document.getElementById('adm-qr-input').files[0];
+        if (!file) return alert("Choose a QR image first!");
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => db.ref('admin_settings/qr').set(reader.result).then(() => alert("✅ QR Updated!"));
+    }
+
+    function openAnn() {
+        const textarea = document.getElementById('ann-text-input');
+        if (textarea) {
+            switchTab('settings', document.querySelector('nav button:last-child'));
+            setTimeout(() => textarea.focus(), 300);
+        } else {
+            const msg = prompt("Write Global Announcement:");
+            if (msg && msg.trim()) postAnnouncementDirect(msg.trim());
+        }
+    }
+
+    function postAnnouncement() {
+        const msg = document.getElementById('ann-text-input').value.trim();
+        if (!msg) return alert("Enter announcement text!");
+        postAnnouncementDirect(msg);
+    }
+
+    function postAnnouncementDirect(msg) {
+        db.ref('announcements').set({ message: msg, time: Date.now() }).then(() => {
+            alert("✅ Announcement Posted!");
+            const el = document.getElementById('ann-text-input');
+            if (el) el.value = '';
+        });
+    }
+
+    function viewFullImg(src) {
+        document.getElementById('full-view-img').src = src;
+        document.getElementById('img-viewer').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
