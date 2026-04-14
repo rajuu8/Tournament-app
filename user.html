@@ -10,6 +10,23 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+
+    <!-- ✅ ONESIGNAL PUSH NOTIFICATION -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "de44e0a8-2e5a-4939-99aa-ef8b7fc8d521",
+          safari_web_id: "optional_safari_id",
+          notifyButton: {
+            enable: true,
+          },
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+    </script>
+
     <style>
         * { font-family: 'Inter', sans-serif; }
         .font-game { font-family: 'Orbitron', sans-serif; }
@@ -131,9 +148,8 @@
 <!-- APP SCREEN -->
 <div id="app-screen" class="hidden">
 
-    <!-- HEADER — FIXED: shows Points, Played Matches, Wins in top bar -->
+    <!-- HEADER -->
     <header class="px-4 py-3 glass sticky top-0 z-50">
-        <!-- Row 1: Logo + Avatar -->
         <div class="flex justify-between items-center mb-3">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -146,7 +162,6 @@
             </div>
             <img id="u-img" onclick="toggleDrawer(true)" class="w-10 h-10 rounded-[12px] border-2 border-blue-500/50 cursor-pointer object-cover bg-slate-800 hover:border-blue-400 transition-all" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
         </div>
-        <!-- Row 2: Stats Bar -->
         <div class="grid grid-cols-3 gap-2">
             <div class="bg-emerald-500/8 border border-emerald-500/15 rounded-xl px-3 py-2 flex items-center gap-2">
                 <i class="fa fa-coins text-emerald-400 text-xs flex-shrink-0"></i>
@@ -515,9 +530,6 @@
     let adGateTimerInterval = null;
     const AD_GATE_SECONDS = 10;
 
-    // ============================================================
-    //  AD UTILITY — Adsterra Direct Link with 10-min cooldown
-    // ============================================================
     const ADSTERRA_URL = "https://www.profitablecpmratenetwork.com/y31hvp6a?key=1cb5a83d571171aff2fe5a994610b703";
     const AD_COOLDOWN_MS = 10 * 60 * 1000;
 
@@ -531,7 +543,6 @@
         if (shouldShowAd()) { window.open(ADSTERRA_URL, "_blank"); recordAdShown(); }
     }
 
-    // Dark green verifying overlay
     function showVerifyingOverlay(message = "Verifying Entry...", delayMs = 1500) {
         return new Promise((resolve) => {
             if (!document.getElementById("ad-overlay-styles")) {
@@ -557,9 +568,6 @@
         });
     }
 
-    // ============================================================
-    //  FLOATING AD
-    // ============================================================
     function showFloatingAd() {
         setTimeout(() => document.getElementById('floating-ad-container').classList.remove('ad-hidden'), 3000);
     }
@@ -567,9 +575,6 @@
         document.getElementById('floating-ad-container').classList.add('ad-hidden');
     }
 
-    // ============================================================
-    //  AD GATE (internal 2-ad wall)
-    // ============================================================
     function openAdGate({ title, subtitle, icon = '🔒', onContinue }) {
         adGateCallback = onContinue;
         document.getElementById('ad-gate-title-text').textContent = title;
@@ -609,9 +614,6 @@
         if (typeof adGateCallback === 'function') { adGateCallback(); adGateCallback = null; }
     }
 
-    // ============================================================
-    //  AUTH
-    // ============================================================
     function showSignup(isSignup) {
         document.getElementById('login-container').classList.toggle('hidden', isSignup);
         document.getElementById('signup-container').classList.toggle('hidden', !isSignup);
@@ -632,9 +634,6 @@
         }).catch(err => alert(err.message));
     }
 
-    // ============================================================
-    //  AUTH STATE — FIXED: header stats (Played + Wins) now update
-    // ============================================================
     auth.onAuthStateChanged(user => {
         const loader = document.getElementById('main-loader');
         if (user) {
@@ -659,35 +658,25 @@
                     showFloatingAd();
                 }, 800);
             });
-            // Real-time user data listener — updates ALL stat locations
             userRef.on('value', snap => {
                 const d = snap.val();
                 if (!d) return;
-                // Name / email / photo
                 const name = d.name || d.displayName || 'Player';
                 if (document.getElementById('u-name')) document.getElementById('u-name').innerText = name;
                 if (document.getElementById('u-email')) document.getElementById('u-email').innerText = d.email || '';
-
-                // Points
                 userPoints = d.points || 0;
                 ['top-pts', 'main-pts', 'stat-bal'].forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.innerText = userPoints;
                 });
-
-                // Played matches — header + drawer
                 const played = d.totalMatches || 0;
                 const wins = d.totalWins || 0;
                 if (document.getElementById('top-played')) document.getElementById('top-played').innerText = played;
                 if (document.getElementById('top-wins'))   document.getElementById('top-wins').innerText = wins;
                 if (document.getElementById('stat-total')) document.getElementById('stat-total').innerText = played;
                 if (document.getElementById('stat-wins'))  document.getElementById('stat-wins').innerText = wins;
-
-                // FF profile fields
                 if (document.getElementById('u-ff-name')) document.getElementById('u-ff-name').value = d.ffName || '';
                 if (document.getElementById('u-ff-id'))   document.getElementById('u-ff-id').value   = d.ffId   || '';
-
-                // Photo
                 if (d.photo) {
                     document.getElementById('u-img').src       = d.photo;
                     document.getElementById('u-img-large').src = d.photo;
@@ -701,16 +690,11 @@
         }
     });
 
-    // ============================================================
-    //  LEADERBOARD — reads from /leaderboard node (admin-set)
-    // ============================================================
     function loadLeaderboard() {
         db.ref('leaderboard').once('value', snap => {
-            const list = document.getElementById('leaderboard-list');
             let players = [];
             if (snap.exists()) snap.forEach(c => players.push(c.val()));
             if (!players.length) {
-                // Fallback: auto-rank by winnings from users
                 db.ref('users').orderByChild('winnings').limitToLast(10).once('value', uSnap => {
                     let arr = [];
                     uSnap.forEach(c => arr.push(c.val()));
@@ -747,9 +731,6 @@
         }).join('');
     }
 
-    // ============================================================
-    //  MATCHES
-    // ============================================================
     function loadMatches() {
         const formatTime = (t) => {
             try { return new Date(t).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }); }
@@ -776,7 +757,6 @@
                 const statusColor = t.status === 'live' ? 'text-emerald-400' : t.status === 'upcoming' ? 'text-blue-400' : 'text-slate-500';
                 const statusDot   = t.status === 'live' ? 'bg-emerald-400 animate-pulse' : t.status === 'upcoming' ? 'bg-blue-400' : 'bg-slate-500';
 
-                // Room info section
                 let roomInfoHtml = "";
                 if (myEntry && (t.status === 'live' || t.status === 'started')) {
                     if (isFree || t.adGateRoom) {
@@ -804,7 +784,6 @@
                     }
                 }
 
-                // Button section
                 let btnHtml = "";
                 if (myEntry) {
                     btnHtml = `<div class="space-y-2.5">
@@ -873,17 +852,13 @@
         });
     }
 
-    // ============================================================
-    //  unlockFreeRoom — FIXED: triggers Adsterra + adGate
-    // ============================================================
     function unlockFreeRoom(matchId, roomId, roomPass, btn) {
-        triggerAd(); // Adsterra direct link (respects cooldown)
+        triggerAd();
         openAdGate({
             title: 'Watch 2 Ads to Unlock Room',
             subtitle: 'Free matches require watching 2 ads first',
             icon: '🎯',
             onContinue: () => {
-                // find closest yellow container regardless of Tailwind escaping
                 let container = btn.parentElement;
                 while (container && !container.classList.contains('mb-4')) {
                     container = container.parentElement;
@@ -914,7 +889,7 @@
         const fileInput = document.getElementById('proof-file');
         if (!fileInput.files[0]) return alert("Screenshot select karo!");
         closeModal('proof-modal');
-        triggerAd(); // Adsterra direct link
+        triggerAd();
         openAdGate({
             title: 'Watch 2 Ads to Submit Proof',
             subtitle: 'Support the platform by watching 2 quick ads',
@@ -923,9 +898,6 @@
         });
     }
 
-    // ============================================================
-    //  confirmJoin — FIXED: Adsterra + verifying overlay
-    // ============================================================
     function confirmJoin(e) {
         const savedFFName = document.getElementById('u-ff-name').value;
         const savedFFId   = document.getElementById('u-ff-id').value;
@@ -934,9 +906,7 @@
         const btn = e.target;
         btn.innerText = "JOINING...";
         btn.disabled = true;
-
-        triggerAd(); // Adsterra in new tab (respects cooldown)
-
+        triggerAd();
         showVerifyingOverlay("Verifying Entry...", 1500).then(() => {
             const doJoin = () => {
                 db.ref('users/' + auth.currentUser.uid + '/totalMatches').transaction(tm => (tm || 0) + 1);
@@ -958,9 +928,6 @@
         });
     }
 
-    // ============================================================
-    //  saveGameDetails — FIXED: Adsterra fires before save
-    // ============================================================
     function saveGameDetails(event) {
         const ffName = document.getElementById('u-ff-name').value.trim();
         const ffId   = document.getElementById('u-ff-id').value.trim();
@@ -968,7 +935,7 @@
         const btn = event.target;
         btn.innerText = "SAVING...";
         btn.disabled = true;
-        triggerAd(); // Adsterra direct link
+        triggerAd();
         db.ref('users/' + auth.currentUser.uid)
             .update({ ffName, ffId })
             .then(() => alert("✅ Profile Saved!"))
@@ -976,9 +943,6 @@
             .finally(() => { btn.innerText = "Save Profile"; btn.disabled = false; });
     }
 
-    // ============================================================
-    //  IMAGE COMPRESSION
-    // ============================================================
     function compressImage(file, quality = 0.5) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -1000,9 +964,6 @@
         });
     }
 
-    // ============================================================
-    //  JOIN FLOW
-    // ============================================================
     function openJoinModal(id, fee) {
         tempMatchId = id;
         activeMatchFee = fee;
@@ -1019,9 +980,6 @@
         openModal('reg-modal');
     }
 
-    // ============================================================
-    //  HISTORY
-    // ============================================================
     function filterHistory(type) {
         currentHistoryFilter = type;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1062,9 +1020,6 @@
         });
     }
 
-    // ============================================================
-    //  TAB SWITCHING
-    // ============================================================
     function switchTab(tab) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
         document.getElementById('tab-' + tab).classList.add('active-tab');
@@ -1076,9 +1031,6 @@
         else if (tab === 'results') loadResults();
     }
 
-    // ============================================================
-    //  DEPOSIT — FIXED: event passed properly
-    // ============================================================
     async function submitDeposit(event) {
         const amt  = parseInt(document.getElementById('dep-amt').value);
         const file = document.getElementById('dep-file').files[0];
@@ -1108,9 +1060,6 @@
         finally { btn.innerText = "Submit Request"; btn.disabled = false; }
     }
 
-    // ============================================================
-    //  WITHDRAW — FIXED: event passed properly
-    // ============================================================
     async function submitWithdraw(event) {
         const amt  = parseInt(document.getElementById('wit-amt').value);
         const file = document.getElementById('wit-file').files[0];
@@ -1146,9 +1095,6 @@
         finally { btn.innerText = "Submit Withdrawal"; btn.disabled = false; }
     }
 
-    // ============================================================
-    //  PROFILE PHOTO
-    // ============================================================
     async function updateProfilePhoto() {
         const file = document.getElementById('u-photo-upload').files[0];
         if (!file) return;
@@ -1160,9 +1106,6 @@
         finally { document.getElementById('u-photo-upload').value = ""; }
     }
 
-    // ============================================================
-    //  SEND PROOF
-    // ============================================================
     async function sendProof(e) {
         const fileInput = document.getElementById('proof-file');
         const file = fileInput.files[0];
@@ -1198,9 +1141,6 @@
         } catch (err) { console.error(err); alert("Error! Please try again."); }
     }
 
-    // ============================================================
-    //  RESULTS
-    // ============================================================
     function loadResults() {
         const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -1233,9 +1173,6 @@
         });
     }
 
-    // ============================================================
-    //  UTILS
-    // ============================================================
     function editDisplayName() {
         const newName = prompt("New name:", document.getElementById('u-name').innerText);
         if (newName && newName.trim()) db.ref('users/' + auth.currentUser.uid).update({ name: newName.trim() });
