@@ -10,8 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
-
-    <!-- ✅ ONESIGNAL PUSH NOTIFICATION -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -19,14 +17,11 @@
         await OneSignal.init({
           appId: "de44e0a8-2e5a-4939-99aa-ef8b7fc8d521",
           safari_web_id: "optional_safari_id",
-          notifyButton: {
-            enable: true,
-          },
+          notifyButton: { enable: true },
           allowLocalhostAsSecureOrigin: true,
         });
       });
     </script>
-
     <style>
         * { font-family: 'Inter', sans-serif; }
         .font-game { font-family: 'Orbitron', sans-serif; }
@@ -43,13 +38,13 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
         .match-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .match-card:hover { transform: translateY(-2px); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+        .match-card:hover { transform: translateY(-2px); }
         .nav-active { color: #3b82f6 !important; }
         .nav-active i { filter: drop-shadow(0 0 6px rgba(59,130,246,0.6)); }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
         .pulse-btn { animation: pulse-glow 2s infinite; }
 
-        /* FLOATING AD */
+        /* ── Floating Ad ─────────────────────────────────── */
         #floating-ad-container { position: fixed; bottom: 90px; right: 12px; width: 160px; height: 320px; z-index: 10000; background: rgba(5, 8, 20, 0.92); border: 1px solid rgba(59,130,246,0.2); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5); display: flex; flex-direction: column; transition: opacity 0.3s ease, transform 0.3s ease; }
         #floating-ad-container.ad-hidden { opacity: 0; pointer-events: none; transform: translateX(200px); }
         #floating-ad-header { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; background: rgba(59,130,246,0.08); border-bottom: 1px solid rgba(59,130,246,0.1); flex-shrink: 0; }
@@ -58,7 +53,7 @@
         #close-floating-ad:hover { background: rgba(239,68,68,0.3); color: white; }
         #floating-ad-body { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
-        /* AD GATE MODAL */
+        /* ── Ad Gate Modal ───────────────────────────────── */
         #ad-gate-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 19000; display: none; flex-direction: column; align-items: center; justify-content: flex-start; padding: 24px 16px; overflow-y: auto; }
         #ad-gate-modal.active { display: flex; }
         .ad-gate-title { font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #60a5fa; margin-bottom: 4px; font-family: 'Orbitron', sans-serif; }
@@ -76,22 +71,31 @@
         #ad-gate-continue-btn:not(:disabled):active { transform: scale(0.97); }
         @keyframes pulseLock { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; } }
         .lock-pulse { animation: pulseLock 1.2s ease-in-out infinite; }
-
-        /* VERIFY OVERLAY */
-        @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes spinRing { to { transform: rotate(360deg); } }
-
         @keyframes revealGlow { 0% { opacity: 0; transform: scale(0.96); } 100% { opacity: 1; transform: scale(1); } }
         .room-revealed { animation: revealGlow 0.5s ease forwards; }
         .progress-fill { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .shimmer-text { background: linear-gradient(90deg, #fff 30%, rgba(255,255,255,0.6) 50%, #fff 70%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
         .stat-chip { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 14px 10px; text-align: center; }
+
+        /* ── Daily Task Progress ─────────────────────────── */
+        .task-progress { height: 8px; background: rgba(255,255,255,0.06); border-radius: 20px; overflow: hidden; }
+        .task-progress-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #8b5cf6, #06b6d4); transition: width 0.5s ease; }
+
+        /* ── Prize notification badge ────────────────────── */
+        @keyframes notifPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+        .notif-badge { animation: notifPulse 1.5s ease-in-out infinite; }
+
+        /* ── Daily Ad cooldown button ────────────────────── */
+        #watch-ad-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* ── Weekly score glow ───────────────────────────── */
+        .score-glow { text-shadow: 0 0 12px rgba(234,179,8,0.6); }
     </style>
 </head>
 <body class="bg-[#05080f] text-white pb-24">
 
-<!-- LOADER -->
+<!-- ═══════════════════════════════════════════════════
+     LOADER
+════════════════════════════════════════════════════ -->
 <div id="main-loader" class="fixed inset-0 bg-[#05080f] z-[3000] flex flex-col items-center justify-center">
     <div class="relative mb-6">
         <div class="w-16 h-16 border-2 border-blue-500/20 rounded-full absolute inset-0"></div>
@@ -103,12 +107,13 @@
     <p class="font-game text-[9px] tracking-[0.4em] text-blue-400/60 animate-pulse">SYNCING...</p>
 </div>
 
-<!-- AUTH SCREEN -->
+<!-- ═══════════════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════════════ -->
 <div id="auth-screen" class="fixed inset-0 bg-[#05080f] z-[2000] flex items-center justify-center p-6">
     <div class="w-full max-w-sm">
         <div class="text-center mb-10">
             <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-800 rounded-[1.5rem] mx-auto mb-5 flex items-center justify-center shadow-2xl shadow-blue-900/50 relative overflow-hidden">
-                <div class="absolute inset-0 bg-blue-400/10 rounded-[1.5rem]"></div>
                 <i class="fa fa-fire-alt text-3xl text-white relative z-10"></i>
             </div>
             <h2 class="font-game text-2xl font-black text-white tracking-widest">FF <span class="text-blue-500">ARENA</span></h2>
@@ -145,7 +150,9 @@
     </div>
 </div>
 
-<!-- APP SCREEN -->
+<!-- ═══════════════════════════════════════════════════
+     APP SCREEN
+════════════════════════════════════════════════════ -->
 <div id="app-screen" class="hidden">
 
     <!-- HEADER -->
@@ -160,28 +167,45 @@
                     <p class="text-[8px] text-slate-500 font-medium tracking-wider uppercase">Pro Tournament</p>
                 </div>
             </div>
-            <img id="u-img" onclick="toggleDrawer(true)" class="w-10 h-10 rounded-[12px] border-2 border-blue-500/50 cursor-pointer object-cover bg-slate-800 hover:border-blue-400 transition-all" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+            <div class="flex items-center gap-2">
+                <div class="relative" id="notif-btn-wrap" style="display:none">
+                    <button onclick="openModal('prize-notif-modal')" class="w-10 h-10 glass-card rounded-xl flex items-center justify-center relative">
+                        <i class="fa fa-bell text-yellow-400 text-sm"></i>
+                        <span id="notif-count-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-black rounded-full w-4 h-4 flex items-center justify-center notif-badge hidden">0</span>
+                    </button>
+                </div>
+                <img id="u-img" onclick="toggleDrawer(true)" class="w-10 h-10 rounded-[12px] border-2 border-blue-500/50 cursor-pointer object-cover bg-slate-800 hover:border-blue-400 transition-all" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+            </div>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-            <div class="bg-emerald-500/8 border border-emerald-500/15 rounded-xl px-3 py-2 flex items-center gap-2">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-4 gap-2">
+            <div class="bg-emerald-500/8 border border-emerald-500/15 rounded-xl px-2 py-2 flex items-center gap-1.5">
                 <i class="fa fa-coins text-emerald-400 text-xs flex-shrink-0"></i>
                 <div>
                     <p class="text-[7px] text-emerald-400/60 font-bold uppercase tracking-wider">Wallet</p>
                     <p id="top-pts" class="text-xs font-black text-emerald-400 leading-none">0</p>
                 </div>
             </div>
-            <div class="bg-blue-500/8 border border-blue-500/15 rounded-xl px-3 py-2 flex items-center gap-2">
+            <div class="bg-yellow-500/8 border border-yellow-500/15 rounded-xl px-2 py-2 flex items-center gap-1.5">
+                <i class="fa fa-wallet text-yellow-400 text-xs flex-shrink-0"></i>
+                <div>
+                    <p class="text-[7px] text-yellow-400/60 font-bold uppercase tracking-wider">Prize</p>
+                    <p id="top-wallet" class="text-xs font-black text-yellow-400 leading-none">₹0</p>
+                </div>
+            </div>
+            <div class="bg-blue-500/8 border border-blue-500/15 rounded-xl px-2 py-2 flex items-center gap-1.5">
                 <i class="fa fa-gamepad text-blue-400 text-xs flex-shrink-0"></i>
                 <div>
                     <p class="text-[7px] text-blue-400/60 font-bold uppercase tracking-wider">Played</p>
                     <p id="top-played" class="text-xs font-black text-blue-400 leading-none">0</p>
                 </div>
             </div>
-            <div class="bg-yellow-500/8 border border-yellow-500/15 rounded-xl px-3 py-2 flex items-center gap-2">
-                <i class="fa fa-trophy text-yellow-400 text-xs flex-shrink-0"></i>
+            <!-- ✅ FIX: Weekly Score shown in header -->
+            <div class="bg-yellow-500/8 border border-yellow-500/15 rounded-xl px-2 py-2 flex items-center gap-1.5">
+                <i class="fa fa-star text-yellow-400 text-xs flex-shrink-0"></i>
                 <div>
-                    <p class="text-[7px] text-yellow-400/60 font-bold uppercase tracking-wider">Wins</p>
-                    <p id="top-wins" class="text-xs font-black text-yellow-400 leading-none">0</p>
+                    <p class="text-[7px] text-yellow-400/60 font-bold uppercase tracking-wider">W.Score</p>
+                    <p id="top-score" class="text-xs font-black text-yellow-400 leading-none score-glow">0</p>
                 </div>
             </div>
         </div>
@@ -213,23 +237,33 @@
                 </div>
             </div>
         </div>
-        <div class="grid grid-cols-3 gap-2.5 mb-5">
+
+        <!-- Drawer Stats Grid — 5 chips including weeklyScore -->
+        <div class="grid grid-cols-4 gap-2 mb-5">
             <div class="stat-chip">
-                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Balance</p>
+                <p class="text-[7px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Balance</p>
                 <h4 id="stat-bal" class="text-base font-black text-emerald-400">0</h4>
-                <p class="text-[8px] text-slate-600">Points</p>
+                <p class="text-[7px] text-slate-600">Points</p>
             </div>
             <div class="stat-chip">
-                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Played</p>
+                <p class="text-[7px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Prize</p>
+                <h4 id="stat-wallet" class="text-base font-black text-yellow-400">₹0</h4>
+                <p class="text-[7px] text-slate-600">Wallet</p>
+            </div>
+            <div class="stat-chip">
+                <p class="text-[7px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Played</p>
                 <h4 id="stat-total" class="text-base font-black text-white">0</h4>
-                <p class="text-[8px] text-slate-600">Matches</p>
+                <p class="text-[7px] text-slate-600">Matches</p>
             </div>
+            <!-- ✅ FIX: Weekly Score shown in drawer stats -->
             <div class="stat-chip">
-                <p class="text-[8px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Wins</p>
-                <h4 id="stat-wins" class="text-base font-black text-yellow-400">0</h4>
-                <p class="text-[8px] text-slate-600">Total</p>
+                <p class="text-[7px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">W.Score</p>
+                <h4 id="stat-wscore" class="text-base font-black text-yellow-400 score-glow">0</h4>
+                <p class="text-[7px] text-slate-600">Weekly</p>
             </div>
         </div>
+
+        <!-- Game Profile -->
         <div class="bg-white/[0.02] p-4 rounded-[1.5rem] border border-white/5 mb-4">
             <p class="text-[9px] text-blue-400 font-game font-bold uppercase mb-3 tracking-[0.15em] text-center">Game Profile</p>
             <div class="space-y-2.5">
@@ -260,19 +294,27 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
+    <!-- ═══════════════════════════════════════════════
+         MAIN CONTENT
+    ════════════════════════════════════════════════ -->
     <main class="px-4 pt-4">
 
-        <!-- MATCHES TAB -->
+        <!-- ── MATCHES TAB ──────────────────────────────── -->
         <div id="tab-matches" class="tab-content active-tab">
-            <div class="relative overflow-hidden rounded-[2rem] mb-5 bg-gradient-to-br from-[#0f1d3a] via-[#0d1a35] to-[#071228] border border-blue-500/10 p-6">
-                <div class="absolute top-0 right-0 w-48 h-48 bg-blue-600/5 rounded-full -translate-y-1/2 translate-x-1/4"></div>
-                <div class="absolute bottom-0 left-0 w-32 h-32 bg-blue-800/10 rounded-full translate-y-1/2 -translate-x-1/4"></div>
+
+            <!-- Balance Card -->
+            <div class="relative overflow-hidden rounded-[2rem] mb-4 bg-gradient-to-br from-[#0f1d3a] via-[#0d1a35] to-[#071228] border border-blue-500/10 p-6">
                 <div class="relative z-10">
                     <p class="text-[10px] text-blue-300/50 font-bold uppercase tracking-[0.25em] mb-2">Current Balance</p>
-                    <div class="flex items-baseline gap-2 mb-5">
+                    <div class="flex items-baseline gap-2 mb-4">
                         <h2 class="font-game text-4xl font-black text-white" id="main-pts">0</h2>
                         <span class="text-sm text-slate-500 font-medium">Points</span>
+                    </div>
+                    <!-- Prize Wallet Row -->
+                    <div class="flex items-center gap-2 mb-4 bg-yellow-500/8 border border-yellow-500/15 rounded-xl px-3 py-2">
+                        <i class="fa fa-crown text-yellow-400 text-sm"></i>
+                        <span class="text-[10px] text-yellow-300/60 font-bold uppercase">Prize Wallet:</span>
+                        <span id="main-wallet" class="font-game text-sm text-yellow-400 font-black">₹0</span>
                     </div>
                     <div class="flex gap-2.5">
                         <button onclick="openModal('deposit-modal')" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-wider active:scale-[0.97] transition-all shadow-lg shadow-blue-900/40">
@@ -284,10 +326,66 @@
                     </div>
                 </div>
             </div>
+
+            <!-- ══════════════════════════════════════════
+                 DAILY MISSION CARD  ✅ FULLY REWORKED
+            ═══════════════════════════════════════════ -->
+            <div id="daily-mission-card" class="glass-card rounded-[1.5rem] p-5 mb-5 border border-purple-500/15">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-purple-500/15 rounded-xl flex items-center justify-center">
+                            <i class="fa fa-star text-purple-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="font-game text-[10px] text-purple-400 uppercase tracking-widest">Daily Mission</p>
+                            <p class="text-[8px] text-slate-500">Watch 10 Ads — Boost Weekly Score</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-game text-lg text-purple-400" id="daily-ads-count">0<span class="text-[10px] text-slate-500">/10</span></p>
+                        <p class="text-[8px] text-slate-600" id="daily-reset-label">Resets in 24h</p>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="task-progress mb-3">
+                    <div class="task-progress-fill" id="daily-ads-progress" style="width:0%"></div>
+                </div>
+
+                <!-- Score Breakdown Grid -->
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <div class="bg-black/30 rounded-xl p-2.5 text-center border border-white/5">
+                        <p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Paid Matches</p>
+                        <p class="font-game text-sm text-blue-400" id="daily-paid-matches">0</p>
+                        <p class="text-[7px] text-slate-600 mt-0.5">×10 pts</p>
+                    </div>
+                    <div class="bg-black/30 rounded-xl p-2.5 text-center border border-white/5">
+                        <p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Ads Today</p>
+                        <p class="font-game text-sm text-purple-400" id="daily-ads-count2">0</p>
+                        <p class="text-[7px] text-slate-600 mt-0.5">×2 pts</p>
+                    </div>
+                    <div class="bg-black/30 rounded-xl p-2.5 text-center border border-white/5">
+                        <p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Weekly Score</p>
+                        <p class="font-game text-sm text-yellow-400 score-glow" id="daily-weekly-score">0</p>
+                        <p class="text-[7px] text-slate-600 mt-0.5">total</p>
+                    </div>
+                </div>
+
+                <!-- ✅ Watch Ad Button with cooldown -->
+                <button id="watch-ad-btn" onclick="watchDailyAd()" class="w-full py-3.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-game text-[10px] uppercase tracking-widest active:scale-[0.97] transition-all shadow-lg shadow-purple-900/30">
+                    <i class="fa fa-play-circle mr-2"></i>Watch Ad & Earn +2 Score
+                </button>
+                <p class="text-[8px] text-slate-600 text-center mt-2 uppercase tracking-wider">
+                    Score = (Paid Matches × 10) + (Ads × 2)
+                </p>
+            </div>
+
+            <!-- Announcement Bar -->
             <div id="ann-bar" class="hidden mb-4 p-3.5 bg-blue-600/8 border border-blue-500/20 rounded-xl flex items-center gap-3">
                 <i class="fa fa-bullhorn text-blue-400 text-xs flex-shrink-0"></i>
                 <marquee id="ann-text" class="text-xs font-medium text-blue-300/80"></marquee>
             </div>
+
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-game text-sm font-bold text-white tracking-wider flex items-center gap-2">
                     <span class="w-1 h-5 bg-blue-500 rounded-full inline-block"></span>
@@ -300,19 +398,53 @@
             <div id="tour-list" class="space-y-5"></div>
         </div>
 
-        <!-- LEADERBOARD TAB -->
+        <!-- ── WEEKLY LEADERBOARD TAB ────────────────────── -->
         <div id="tab-leaderboard" class="tab-content">
-            <div class="text-center mb-6 pt-2">
+            <div class="text-center mb-5 pt-2">
                 <div class="w-16 h-16 bg-yellow-500/10 border border-yellow-500/20 rounded-[1.5rem] mx-auto mb-4 flex items-center justify-center">
                     <i class="fa fa-crown text-yellow-400 text-2xl"></i>
                 </div>
-                <h2 class="font-game text-sm font-bold text-white tracking-widest">HALL OF FAME</h2>
-                <p class="text-[9px] text-slate-500 mt-1 tracking-[0.3em] uppercase">Elite Champions</p>
+                <h2 class="font-game text-sm font-bold text-white tracking-widest">WEEKLY MEGA WIN</h2>
+                <p class="text-[9px] text-slate-500 mt-1 tracking-[0.3em] uppercase">Top Score Leaderboard</p>
             </div>
+
+            <!-- Prize Distribution -->
+            <div class="grid grid-cols-3 gap-2 mb-5">
+                <div class="bg-yellow-500/8 border border-yellow-500/20 rounded-xl p-3 text-center">
+                    <p class="text-xl">👑</p>
+                    <p class="text-[8px] text-yellow-400 font-bold uppercase mt-1">Rank 1</p>
+                    <p class="font-game text-sm text-yellow-400">₹30</p>
+                </div>
+                <div class="bg-slate-500/8 border border-slate-500/20 rounded-xl p-3 text-center">
+                    <p class="text-xl">🥈</p>
+                    <p class="text-[8px] text-slate-400 font-bold uppercase mt-1">Rank 2</p>
+                    <p class="font-game text-sm text-slate-300">₹20</p>
+                </div>
+                <div class="bg-orange-500/8 border border-orange-500/20 rounded-xl p-3 text-center">
+                    <p class="text-xl">🥉</p>
+                    <p class="text-[8px] text-orange-400 font-bold uppercase mt-1">Rank 3</p>
+                    <p class="font-game text-sm text-orange-400">₹10</p>
+                </div>
+            </div>
+
+            <!-- Score formula info -->
+            <div class="bg-blue-500/5 border border-blue-500/10 rounded-xl p-3 mb-5">
+                <p class="text-[9px] text-slate-500">Minimum <strong class="text-blue-400">1 paid match</strong> required to appear. Score = <strong class="text-purple-400">(Paid Matches × 10)</strong> + <strong class="text-purple-400">(Daily Ads × 2)</strong></p>
+            </div>
+
+            <!-- My Rank quick-view -->
+            <div id="my-rank-chip" class="hidden mb-4 p-3.5 bg-blue-500/8 border border-blue-500/20 rounded-xl flex items-center gap-3">
+                <i class="fa fa-user-circle text-blue-400 text-sm"></i>
+                <div class="flex-1">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase">Your Rank</p>
+                    <p id="my-rank-text" class="text-white text-xs font-bold">#— · Score: 0</p>
+                </div>
+            </div>
+
             <div id="leaderboard-list" class="space-y-3"></div>
         </div>
 
-        <!-- RESULTS TAB -->
+        <!-- ── RESULTS TAB ────────────────────────────────── -->
         <div id="tab-results" class="tab-content">
             <div class="flex items-center gap-2 mb-5">
                 <span class="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
@@ -321,7 +453,7 @@
             <div id="results-list" class="space-y-4"></div>
         </div>
 
-        <!-- HISTORY TAB -->
+        <!-- ── HISTORY TAB ────────────────────────────────── -->
         <div id="tab-history" class="tab-content">
             <div class="flex justify-between items-center mb-5">
                 <div class="flex items-center gap-2">
@@ -346,7 +478,7 @@
         </button>
         <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="text-slate-500 flex flex-col items-center gap-1.5 min-w-[44px]">
             <i class="fa fa-trophy text-lg"></i>
-            <span class="text-[7px] font-bold uppercase tracking-widest">Top</span>
+            <span class="text-[7px] font-bold uppercase tracking-widest">Weekly</span>
         </button>
         <button onclick="switchTab('history')" id="nav-history" class="text-slate-500 flex flex-col items-center gap-1.5 min-w-[44px]">
             <i class="fa fa-history text-lg"></i>
@@ -359,7 +491,9 @@
     </nav>
 </div>
 
-<!-- MODALS -->
+<!-- ═══════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════ -->
 
 <!-- Rules Modal -->
 <div id="rules-modal" class="fixed inset-0 bg-black/90 hidden z-[1800] flex items-center justify-center p-6">
@@ -369,22 +503,10 @@
             <h3 class="font-game text-sm font-bold text-blue-400 uppercase tracking-widest">Match Rules</h3>
         </div>
         <div class="space-y-3 mb-6 text-sm text-slate-400 font-medium">
-            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5">
-                <span class="text-red-400 font-bold flex-shrink-0">01</span>
-                <p>No Hacking or Scripting — Direct BAN.</p>
-            </div>
-            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5">
-                <span class="text-red-400 font-bold flex-shrink-0">02</span>
-                <p>No team-up in Solo matches.</p>
-            </div>
-            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5">
-                <span class="text-blue-400 font-bold flex-shrink-0">03</span>
-                <p>Join Room 5 minutes before start time.</p>
-            </div>
-            <div class="flex gap-3 p-3 bg-yellow-500/5 rounded-xl border border-yellow-500/20">
-                <span class="text-yellow-400 font-bold flex-shrink-0">04</span>
-                <p class="text-yellow-300/80">Screenshot of the win is <strong>mandatory!</strong></p>
-            </div>
+            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5"><span class="text-red-400 font-bold flex-shrink-0">01</span><p>No Hacking or Scripting — Direct BAN.</p></div>
+            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5"><span class="text-red-400 font-bold flex-shrink-0">02</span><p>No team-up in Solo matches.</p></div>
+            <div class="flex gap-3 p-3 bg-white/[0.02] rounded-xl border border-white/5"><span class="text-blue-400 font-bold flex-shrink-0">03</span><p>Join Room 5 minutes before start time.</p></div>
+            <div class="flex gap-3 p-3 bg-yellow-500/5 rounded-xl border border-yellow-500/20"><span class="text-yellow-400 font-bold flex-shrink-0">04</span><p class="text-yellow-300/80">Screenshot of the win is <strong>mandatory!</strong></p></div>
         </div>
         <button onclick="acceptRules()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 rounded-xl font-game font-bold text-xs uppercase tracking-widest active:scale-[0.98] transition-all">I Agree & Continue</button>
     </div>
@@ -414,7 +536,7 @@
     <div class="bg-[#0a0e1a] p-7 rounded-[2rem] w-full max-w-sm border border-slate-800">
         <div class="flex items-center justify-between mb-5">
             <h3 class="font-game text-sm font-bold text-blue-400 uppercase tracking-widest">Add Points</h3>
-            <button onclick="closeModal('deposit-modal')" class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-slate-500 hover:text-white transition-colors"><i class="fa fa-times text-xs"></i></button>
+            <button onclick="closeModal('deposit-modal')" class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-slate-500"><i class="fa fa-times text-xs"></i></button>
         </div>
         <div class="bg-white p-3 rounded-xl inline-block mb-5 mx-auto block w-fit">
             <img id="adm-qr-img" src="" class="w-40 h-40 object-contain">
@@ -426,7 +548,7 @@
                 <p class="text-[10px] text-slate-500 font-medium">Upload Payment Screenshot</p>
                 <input id="dep-file" type="file" accept="image/*" class="hidden">
             </div>
-            <button onclick="submitDeposit(event)" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm uppercase tracking-wider active:scale-[0.98] transition-all shadow-lg shadow-emerald-900/30">Submit Request</button>
+            <button onclick="submitDeposit(event)" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-sm uppercase tracking-wider active:scale-[0.98] transition-all">Submit Request</button>
         </div>
     </div>
 </div>
@@ -464,6 +586,17 @@
             <button onclick="closeModal('proof-modal')" class="py-3 bg-white/[0.04] text-slate-400 rounded-xl font-bold text-xs uppercase border border-white/5 active:scale-[0.97] transition-all">Cancel</button>
             <button onclick="handleProofWithAds(event)" class="py-3 bg-emerald-600 text-white rounded-xl font-bold text-xs uppercase active:scale-[0.97] transition-all">Send to Admin</button>
         </div>
+    </div>
+</div>
+
+<!-- Prize Notification Modal -->
+<div id="prize-notif-modal" class="fixed inset-0 bg-black/95 hidden z-[2000] flex items-center justify-center p-6">
+    <div class="bg-[#0a0e1a] p-7 rounded-[2rem] w-full max-w-sm border border-yellow-500/20">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="font-game text-sm font-bold text-yellow-400 uppercase tracking-widest">Prize Notifications</h3>
+            <button onclick="closeModal('prize-notif-modal')" class="w-8 h-8 bg-white/5 rounded-full flex items-center justify-center text-slate-500"><i class="fa fa-times text-xs"></i></button>
+        </div>
+        <div id="prize-notif-list" class="space-y-3 max-h-80 overflow-y-auto"></div>
     </div>
 </div>
 
@@ -506,7 +639,11 @@
     <p style="font-size:8px;color:rgba(255,255,255,0.2);margin-top:10px;text-transform:uppercase;letter-spacing:0.08em;text-align:center;">Ads support free tournaments</p>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
 <script>
+    /* ── Firebase Init ─────────────────────────────── */
     const firebaseConfig = {
         apiKey: "AIzaSyCZz90P8npkRcL0ZctIelDFbKRN48BsZzk",
         authDomain: "tracking-7494e.firebaseapp.com",
@@ -518,49 +655,194 @@
         measurementId: "G-2WQFTE696H"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const db   = firebase.database();
     const auth = firebase.auth();
 
-    let userPoints = 0;
-    let activeMatchId = null;
-    let activeMatchFee = 0;
-    let tempMatchId = null;
+    /* ── App State ─────────────────────────────────── */
+    let userPoints         = 0;
+    let activeMatchId      = null;
+    let activeMatchFee     = 0;
+    let tempMatchId        = null;
     let currentHistoryFilter = 'ALL';
-    let adGateCallback = null;
+    let adGateCallback     = null;
     let adGateTimerInterval = null;
-    const AD_GATE_SECONDS = 10;
+    const AD_GATE_SECONDS  = 10;
+    const DAILY_AD_LIMIT   = 10;
+    const AD_COOLDOWN_MS = 5 * 1000;
 
     const ADSTERRA_URL = "https://www.profitablecpmratenetwork.com/y31hvp6a?key=1cb5a83d571171aff2fe5a994610b703";
-    const AD_COOLDOWN_MS = 10 * 60 * 1000;
+    const FLOAT_AD_COOLDOWN = 10 * 60 * 1000;
 
-    function shouldShowAd() {
+    /* ── Ad helpers ────────────────────────────────── */
+    function shouldShowFloatingAd() {
         const last = localStorage.getItem("ad_last_shown");
-        if (!last) return true;
-        return (Date.now() - parseInt(last)) > AD_COOLDOWN_MS;
+        return !last || (Date.now() - parseInt(last)) > FLOAT_AD_COOLDOWN;
     }
-    function recordAdShown() { localStorage.setItem("ad_last_shown", Date.now().toString()); }
-    function triggerAd() {
-        if (shouldShowAd()) { window.open(ADSTERRA_URL, "_blank"); recordAdShown(); }
+    function recordFloatingAdShown() { localStorage.setItem("ad_last_shown", Date.now().toString()); }
+    function triggerAd() { window.open(ADSTERRA_URL, "_blank"); }
+
+    /* ── Watch-Ad cooldown helpers ─────────────────── */
+    function getAdCooldownRemaining() {
+        const last = parseInt(localStorage.getItem("watch_ad_last") || "0");
+        const diff = Date.now() - last;
+        return diff < AD_COOLDOWN_MS ? Math.ceil((AD_COOLDOWN_MS - diff) / 1000) : 0;
+    }
+    function setAdCooldown() { localStorage.setItem("watch_ad_last", Date.now().toString()); }
+
+    /* ════════════════════════════════════════════════
+       DAILY AD MISSION  ✅ FULLY FIXED
+       — Writes weeklyScore to DB after every update
+       — Properly resets dailyAdsCount when 24h pass
+    ═══════════════════════════════════════════════ */
+    function watchDailyAd() {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // Cooldown check (prevent spam)
+        const remaining = getAdCooldownRemaining();
+        if (remaining > 0) {
+            alert(`⏳ Please wait ${Math.ceil(remaining / 60)} min ${remaining % 60}s before watching another ad.`);
+            return;
+        }
+
+        db.ref('users/' + user.uid).once('value', snap => {
+            const d = snap.val() || {};
+            const lastAdTime = d.lastAdTime || 0;
+            const now        = Date.now();
+            const isNewDay   = (now - lastAdTime) > 24 * 60 * 60 * 1000;
+
+            // ✅ FIX: Actually reset count in DB on new day
+            const currentAds = isNewDay ? 0 : (d.dailyAdsCount || 0);
+            const paidMatches = d.weeklyPaidMatches || 0;
+
+            if (currentAds >= DAILY_AD_LIMIT) {
+                alert(`✅ Daily limit reached! (${DAILY_AD_LIMIT}/10)\nCome back tomorrow for more ads.`);
+                return;
+            }
+
+            // Open ad gate
+            openAdGate({
+                title: 'Watch Ad to Earn +2 Score',
+                subtitle: `${currentAds}/${DAILY_AD_LIMIT} ads watched today`,
+                icon: '⭐',
+                onContinue: () => {
+                    setAdCooldown();
+                    const newAds    = currentAds + 1;
+                    const newScore  = (paidMatches * 10) + (newAds * 2);
+
+                    const updates = {
+                        dailyAdsCount:  newAds,
+                        lastAdTime:     now,
+                        weeklyScore:    newScore   // ✅ FIX: persist to DB
+                    };
+                    // If it was a new day, ensure old count was 0
+                    if (isNewDay) updates.dailyAdsCount = 1;
+
+                    db.ref('users/' + user.uid).update(updates).then(() => {
+                        updateDailyMissionUI(newAds, paidMatches);
+                    });
+                }
+            });
+            triggerAd();
+        });
     }
 
-    function showVerifyingOverlay(message = "Verifying Entry...", delayMs = 1500) {
-        return new Promise((resolve) => {
-            if (!document.getElementById("ad-overlay-styles")) {
-                const s = document.createElement("style");
-                s.id = "ad-overlay-styles";
-                s.textContent = `
-                    @keyframes _fadeOv { from{opacity:0} to{opacity:1} }
-                    @keyframes _spinR  { to{transform:rotate(360deg)} }
-                    #ad-verify-overlay { animation: _fadeOv 0.25s ease; }
-                    #ad-verify-overlay .vspinner { animation: _spinR 0.85s linear infinite; }
-                `;
-                document.head.appendChild(s);
+    /* ── Update Daily Mission UI ───────────────────── */
+    function updateDailyMissionUI(adsCount, paidMatches) {
+        const score    = (paidMatches * 10) + (adsCount * 2);
+        const progress = Math.min((adsCount / DAILY_AD_LIMIT) * 100, 100);
+        const atLimit  = adsCount >= DAILY_AD_LIMIT;
+
+        const countHtml = `${adsCount}<span class="text-[10px] text-slate-500">/10</span>`;
+        setText('daily-ads-count',    null, countHtml, true);
+        setText('daily-ads-count2',   adsCount);
+        setText('daily-paid-matches', paidMatches);
+        setText('daily-weekly-score', score);
+        setText('top-score',          score);
+        setText('stat-wscore',        score);
+
+        const bar = document.getElementById('daily-ads-progress');
+        if (bar) bar.style.width = progress + '%';
+
+        // Reset label
+        const lbl = document.getElementById('daily-reset-label');
+        if (lbl) lbl.innerText = atLimit ? '✅ Come back tomorrow' : 'Resets every 24h';
+
+        // Update watch-ad button
+        const btn = document.getElementById('watch-ad-btn');
+        if (btn) {
+            if (atLimit) {
+                btn.innerHTML = '<i class="fa fa-check-circle mr-2"></i>Daily Limit Reached';
+                btn.disabled  = true;
+                btn.className = btn.className
+                    .replace('bg-purple-600', 'bg-slate-700')
+                    .replace('hover:bg-purple-500', '');
+            } else {
+                const coolSec = getAdCooldownRemaining();
+                if (coolSec > 0) {
+                    btn.innerHTML = `<i class="fa fa-clock mr-2"></i>Cooldown: ${Math.ceil(coolSec/60)}m`;
+                    btn.disabled  = true;
+                    // Re-enable when cooldown expires
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fa fa-play-circle mr-2"></i>Watch Ad & Earn +2 Score';
+                        btn.disabled  = false;
+                    }, coolSec * 1000);
+                }
             }
+        }
+    }
+
+    /* ── Helper: set text / html ───────────────────── */
+    function setText(id, text, html, isHtml = false) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isHtml && html !== undefined) el.innerHTML = html;
+        else if (text !== null && text !== undefined) el.innerText = text;
+    }
+
+    /* ════════════════════════════════════════════════
+       PRIZE NOTIFICATIONS
+    ═══════════════════════════════════════════════ */
+    function loadPrizeNotifications(uid) {
+        db.ref(`users/${uid}/prizeNotifications`).on('value', snap => {
+            if (!snap.exists()) return;
+            let unread = 0, html = '';
+            snap.forEach(child => {
+                const n = child.val();
+                if (!n.read) unread++;
+                html += `<div class="p-3 rounded-xl border ${n.read ? 'border-white/5 opacity-60' : 'border-yellow-500/20 bg-yellow-500/5'}" id="notif-${child.key}">
+                    <p class="text-xs font-bold text-yellow-400 mb-1">🎉 Prize Won!</p>
+                    <p class="text-[10px] text-white">${n.message}</p>
+                    <p class="text-[8px] text-slate-600 mt-1">${new Date(n.time).toLocaleDateString()}</p>
+                    ${!n.read ? `<button onclick="markNotifRead('${uid}','${child.key}')" class="mt-2 text-[8px] text-blue-400 uppercase font-bold">Mark Read</button>` : ''}
+                </div>`;
+            });
+            const list  = document.getElementById('prize-notif-list');
+            const badge = document.getElementById('notif-count-badge');
+            const wrap  = document.getElementById('notif-btn-wrap');
+            if (list) list.innerHTML = html || '<p class="text-slate-600 text-center text-xs py-4">No prize notifications yet</p>';
+            if (unread > 0) {
+                badge.innerText = unread;
+                badge.classList.remove('hidden');
+                wrap.style.display = 'block';
+            } else {
+                badge.classList.add('hidden');
+            }
+        });
+    }
+    function markNotifRead(uid, key) {
+        db.ref(`users/${uid}/prizeNotifications/${key}`).update({ read: true });
+    }
+
+    /* ════════════════════════════════════════════════
+       VERIFY OVERLAY
+    ═══════════════════════════════════════════════ */
+    function showVerifyingOverlay(message = "Verifying Entry...", delayMs = 1500) {
+        return new Promise(resolve => {
             const ov = document.createElement("div");
             ov.id = "ad-verify-overlay";
             ov.style.cssText = "position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;font-family:'Inter',sans-serif;";
-            ov.innerHTML = `
-                <div class="vspinner" style="width:52px;height:52px;border:3px solid rgba(34,197,94,0.15);border-top-color:#22c55e;border-radius:50%;"></div>
+            ov.innerHTML = `<div style="width:52px;height:52px;border:3px solid rgba(34,197,94,0.15);border-top-color:#22c55e;border-radius:50%;animation:spin 0.85s linear infinite;"></div>
                 <p style="color:#22c55e;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.18em;">${message}</p>
                 <p style="color:rgba(255,255,255,0.2);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;margin-top:-10px;">Please wait…</p>`;
             document.body.appendChild(ov);
@@ -569,23 +851,31 @@
     }
 
     function showFloatingAd() {
-        setTimeout(() => document.getElementById('floating-ad-container').classList.remove('ad-hidden'), 3000);
+        if (shouldShowFloatingAd()) {
+            setTimeout(() => {
+                document.getElementById('floating-ad-container').classList.remove('ad-hidden');
+                recordFloatingAdShown();
+            }, 3000);
+        }
     }
     function closeFloatingAd() {
         document.getElementById('floating-ad-container').classList.add('ad-hidden');
     }
 
+    /* ════════════════════════════════════════════════
+       AD GATE
+    ═══════════════════════════════════════════════ */
     function openAdGate({ title, subtitle, icon = '🔒', onContinue }) {
         adGateCallback = onContinue;
         document.getElementById('ad-gate-title-text').textContent = title;
-        document.getElementById('ad-gate-sub-text').textContent = subtitle;
-        document.getElementById('ad-gate-icon').textContent = icon;
-        document.getElementById('ad-gate-countdown').textContent = AD_GATE_SECONDS;
+        document.getElementById('ad-gate-sub-text').textContent   = subtitle;
+        document.getElementById('ad-gate-icon').textContent       = icon;
+        document.getElementById('ad-gate-countdown').textContent  = AD_GATE_SECONDS;
         document.getElementById('ad-gate-progress-fill').style.width = '0%';
         document.getElementById('ad-gate-timer-text').style.color = '';
         document.getElementById('ad-gate-icon').classList.add('lock-pulse');
         const btn = document.getElementById('ad-gate-continue-btn');
-        btn.disabled = true;
+        btn.disabled  = true;
         btn.innerHTML = `🔒 &nbsp; Please Watch Ads...`;
         document.getElementById('ad-gate-modal').classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -597,7 +887,7 @@
             document.getElementById('ad-gate-countdown').textContent = remaining;
             if (remaining <= 0) {
                 clearInterval(adGateTimerInterval);
-                btn.disabled = false;
+                btn.disabled  = false;
                 btn.innerHTML = `✅ &nbsp; Continue Now`;
                 document.getElementById('ad-gate-timer-text').textContent = '✔ Done! You can continue.';
                 document.getElementById('ad-gate-timer-text').style.color = '#4ade80';
@@ -614,6 +904,9 @@
         if (typeof adGateCallback === 'function') { adGateCallback(); adGateCallback = null; }
     }
 
+    /* ════════════════════════════════════════════════
+       AUTH
+    ═══════════════════════════════════════════════ */
     function showSignup(isSignup) {
         document.getElementById('login-container').classList.toggle('hidden', isSignup);
         document.getElementById('signup-container').classList.toggle('hidden', !isSignup);
@@ -630,57 +923,91 @@
         const p = document.getElementById('s-pass').value;
         if (!n || !e || p.length < 6) return alert("Fill details correctly (Min 6 chars password)!");
         auth.createUserWithEmailAndPassword(e, p).then(res => {
-            db.ref('users/' + res.user.uid).set({ name: n, email: e, points: 0, status: 'active', photo: '', joinedAt: Date.now(), totalMatches: 0, totalWins: 0, winnings: 0 });
+            db.ref('users/' + res.user.uid).set({
+                name: n, email: e, points: 0, status: 'active', photo: '',
+                joinedAt: Date.now(), totalMatches: 0, totalWins: 0, winnings: 0,
+                walletBalance: 0, dailyAdsCount: 0, weeklyPaidMatches: 0,
+                weeklyScore: 0, lastAdTime: 0
+            });
         }).catch(err => alert(err.message));
     }
 
+    /* ════════════════════════════════════════════════
+       AUTH STATE CHANGE
+    ═══════════════════════════════════════════════ */
     auth.onAuthStateChanged(user => {
         const loader = document.getElementById('main-loader');
         if (user) {
             loader.style.display = 'flex';
             document.getElementById('auth-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
+
             const userRef = db.ref('users/' + user.uid);
             userRef.once('value').then(snap => {
-                const d = snap.val();
-                userRef.update({
-                    uid: user.uid,
-                    email: user.email,
-                    name: (d && d.name) ? d.name : (user.displayName || user.email.split('@')[0]),
-                    photo: (d && d.photo) ? d.photo : (user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png")
-                });
+                const d = snap.val() || {};
+                // Ensure all weekly fields exist
+                const updates = {
+                    uid:              user.uid,
+                    email:            user.email,
+                    name:             d.name || user.displayName || user.email.split('@')[0],
+                    photo:            d.photo || user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+                    walletBalance:    d.walletBalance    !== undefined ? d.walletBalance    : 0,
+                    dailyAdsCount:    d.dailyAdsCount    !== undefined ? d.dailyAdsCount    : 0,
+                    weeklyPaidMatches:d.weeklyPaidMatches!== undefined ? d.weeklyPaidMatches: 0,
+                    weeklyScore:      d.weeklyScore      !== undefined ? d.weeklyScore      : 0,
+                    lastAdTime:       d.lastAdTime       !== undefined ? d.lastAdTime       : 0
+                };
+                userRef.update(updates);
             });
+
             Promise.all([loadMatches(), loadAdminQR(), loadAnnouncements()]).then(() => {
                 setTimeout(() => {
-                    loader.style.opacity = '0';
+                    loader.style.opacity   = '0';
                     loader.style.transition = 'opacity 0.4s';
                     setTimeout(() => loader.style.display = 'none', 400);
                     showFloatingAd();
                 }, 800);
             });
+
+            // Live listener
             userRef.on('value', snap => {
                 const d = snap.val();
                 if (!d) return;
+
                 const name = d.name || d.displayName || 'Player';
-                if (document.getElementById('u-name')) document.getElementById('u-name').innerText = name;
-                if (document.getElementById('u-email')) document.getElementById('u-email').innerText = d.email || '';
+                setText('u-name',  name);
+                setText('u-email', d.email || '');
+
                 userPoints = d.points || 0;
-                ['top-pts', 'main-pts', 'stat-bal'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.innerText = userPoints;
-                });
-                const played = d.totalMatches || 0;
-                const wins = d.totalWins || 0;
-                if (document.getElementById('top-played')) document.getElementById('top-played').innerText = played;
-                if (document.getElementById('top-wins'))   document.getElementById('top-wins').innerText = wins;
-                if (document.getElementById('stat-total')) document.getElementById('stat-total').innerText = played;
-                if (document.getElementById('stat-wins'))  document.getElementById('stat-wins').innerText = wins;
-                if (document.getElementById('u-ff-name')) document.getElementById('u-ff-name').value = d.ffName || '';
-                if (document.getElementById('u-ff-id'))   document.getElementById('u-ff-id').value   = d.ffId   || '';
+                ['top-pts','main-pts','stat-bal'].forEach(id => setText(id, userPoints));
+
+                const wb = d.walletBalance || 0;
+                ['top-wallet','main-wallet'].forEach(id => setText(id, '₹' + wb));
+                setText('stat-wallet', '₹' + wb);
+                setText('top-played',  d.totalMatches || 0);
+                setText('stat-total',  d.totalMatches || 0);
+
+                // ✅ FIX: Check 24h reset on load
+                const lastAdTime   = d.lastAdTime    || 0;
+                const isNewDay     = (Date.now() - lastAdTime) > 24 * 60 * 60 * 1000;
+                const effectiveAds = isNewDay ? 0 : (d.dailyAdsCount || 0);
+                const paidMatches  = d.weeklyPaidMatches || 0;
+
+                // ✅ FIX: If day changed, reset in DB
+                if (isNewDay && (d.dailyAdsCount || 0) > 0) {
+                    userRef.update({ dailyAdsCount: 0, weeklyScore: paidMatches * 10 });
+                }
+
+                updateDailyMissionUI(effectiveAds, paidMatches);
+
                 if (d.photo) {
                     document.getElementById('u-img').src       = d.photo;
                     document.getElementById('u-img-large').src = d.photo;
                 }
+                if (document.getElementById('u-ff-name')) document.getElementById('u-ff-name').value = d.ffName || '';
+                if (document.getElementById('u-ff-id'))   document.getElementById('u-ff-id').value   = d.ffId   || '';
+
+                loadPrizeNotifications(user.uid);
             });
         } else {
             loader.style.display = 'none';
@@ -690,50 +1017,81 @@
         }
     });
 
+    /* ════════════════════════════════════════════════
+       WEEKLY LEADERBOARD  ✅ Shows my rank chip
+    ═══════════════════════════════════════════════ */
     function loadLeaderboard() {
-        db.ref('leaderboard').once('value', snap => {
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = `<p class="text-center text-blue-400 font-game text-[9px] animate-pulse tracking-widest uppercase py-8">Loading Rankings...</p>`;
+
+        db.ref('users').once('value', snap => {
             let players = [];
-            if (snap.exists()) snap.forEach(c => players.push(c.val()));
-            if (!players.length) {
-                db.ref('users').orderByChild('winnings').limitToLast(10).once('value', uSnap => {
-                    let arr = [];
-                    uSnap.forEach(c => arr.push(c.val()));
-                    arr.reverse();
-                    renderLeaderboard(arr);
-                });
-            } else {
-                players.sort((a, b) => (b.winnings || 0) - (a.winnings || 0));
-                renderLeaderboard(players);
+            snap.forEach(child => {
+                const u = child.val();
+                const paidMatches = u.weeklyPaidMatches || 0;
+                if (paidMatches >= 1) {
+                    const adsCount   = u.dailyAdsCount || 0;
+                    const weeklyScore = (paidMatches * 10) + (adsCount * 2);
+                    players.push({
+                        uid: child.key,
+                        name: u.displayName || u.name || 'Player',
+                        photo: u.photo || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                        paidMatches, adsCount, weeklyScore
+                    });
+                }
+            });
+            players.sort((a, b) => b.weeklyScore - a.weeklyScore);
+
+            // Show my rank chip
+            const myUid = auth.currentUser ? auth.currentUser.uid : '';
+            const myRank = players.findIndex(p => p.uid === myUid) + 1;
+            const myChip = document.getElementById('my-rank-chip');
+            const myText = document.getElementById('my-rank-text');
+            if (myRank > 0 && myChip && myText) {
+                const me = players[myRank - 1];
+                myText.innerText = `#${myRank} · Score: ${me.weeklyScore} (${me.paidMatches} matches, ${me.adsCount} ads)`;
+                myChip.classList.remove('hidden');
+            } else if (myChip) {
+                myChip.classList.add('hidden');
             }
+
+            if (!players.length) {
+                list.innerHTML = `<div class="text-center py-12 glass-card rounded-[1.5rem] p-6">
+                    <div class="text-4xl mb-3">🏆</div>
+                    <p class="text-slate-600 font-game text-[9px] tracking-wider uppercase">No Eligible Players Yet</p>
+                    <p class="text-slate-700 text-[8px] mt-2">Join a paid match to appear!</p>
+                </div>`;
+                return;
+            }
+
+            list.innerHTML = players.slice(0, 10).map((p, i) => {
+                const rank   = i + 1;
+                const rankUI = rank===1 ? '👑' : rank===2 ? '🥈' : rank===3 ? '🥉' : `#${rank}`;
+                const border = rank===1 ? 'border-yellow-500/30' : rank===2 ? 'border-slate-400/20' : rank===3 ? 'border-orange-500/20' : 'border-white/5';
+                const bg     = rank===1 ? 'bg-yellow-500/5' : rank===2 ? 'bg-slate-400/5' : 'bg-white/[0.02]';
+                const isMe   = p.uid === myUid;
+                return `<div class="p-4 rounded-2xl border ${border} ${bg} ${isMe ? 'ring-1 ring-blue-500/40' : ''} flex items-center gap-3">
+                    <span class="text-lg w-8 text-center flex-shrink-0">${rankUI}</span>
+                    <img src="${p.photo}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                    <div class="flex-1 min-w-0">
+                        <p class="font-bold text-white text-sm truncate">${p.name}${isMe ? ' <span class="text-[8px] text-blue-400">(You)</span>' : ''}</p>
+                        <p class="text-[9px] text-slate-500">${p.paidMatches} Paid · ${p.adsCount} Ads</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-game text-sm text-yellow-400 font-black score-glow">${p.weeklyScore}</p>
+                        <p class="text-[8px] text-slate-600">score</p>
+                    </div>
+                </div>`;
+            }).join('');
         });
     }
 
-    function renderLeaderboard(players) {
-        const list = document.getElementById('leaderboard-list');
-        if (!players.length) {
-            list.innerHTML = `<div class="text-center py-12 text-slate-600 font-game text-[9px] tracking-[0.2em]">NO PLAYERS YET</div>`;
-            return;
-        }
-        list.innerHTML = players.map((p, i) => {
-            const rank = i + 1;
-            const rankUI = rank === 1 ? "👑" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `#${rank}`;
-            const borderColor = rank===1 ? 'border-yellow-500/30' : rank===2 ? 'border-slate-400/20' : rank===3 ? 'border-orange-500/20' : 'border-white/5';
-            const bgColor    = rank===1 ? 'bg-yellow-500/5'   : rank===2 ? 'bg-slate-400/5'    : 'bg-white/[0.02]';
-            return `<div class="p-4 rounded-2xl border ${borderColor} ${bgColor} flex items-center gap-3">
-                <span class="text-lg w-8 text-center flex-shrink-0">${rankUI}</span>
-                <img src="${p.photo || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="w-10 h-10 rounded-xl object-cover flex-shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
-                <div class="flex-1 min-w-0">
-                    <p class="font-bold text-white text-sm truncate">${p.name || 'Player'}</p>
-                    <p class="text-[10px] text-slate-500">${p.won || p.totalWins || 0} Wins</p>
-                </div>
-                <p class="text-emerald-400 font-black text-sm">₹${p.winnings || 0}</p>
-            </div>`;
-        }).join('');
-    }
-
+    /* ════════════════════════════════════════════════
+       MATCHES
+    ═══════════════════════════════════════════════ */
     function loadMatches() {
-        const formatTime = (t) => {
-            try { return new Date(t).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }); }
+        const fmt = t => {
+            try { return new Date(t).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:true }); }
             catch(e) { return t; }
         };
         db.ref('tournaments').on('value', snap => {
@@ -744,18 +1102,18 @@
                 return;
             }
             snap.forEach(child => {
-                const t = child.val();
+                const t        = child.val();
                 const matchKey = child.key;
-                const isFree = !t.fee || parseInt(t.fee) === 0;
-                let myEntry = false;
+                const isFree   = !t.fee || parseInt(t.fee) === 0;
+                let myEntry    = false;
                 if (t.players && auth.currentUser) {
                     Object.values(t.players).forEach(p => { if (p.uid === auth.currentUser.uid) myEntry = true; });
                 }
-                const pCount = t.players ? Object.keys(t.players).length : 0;
+                const pCount       = t.players ? Object.keys(t.players).length : 0;
                 const progressWidth = Math.min((pCount / t.slots) * 100, 100);
-                const slotsLeft = t.slots - pCount;
-                const statusColor = t.status === 'live' ? 'text-emerald-400' : t.status === 'upcoming' ? 'text-blue-400' : 'text-slate-500';
-                const statusDot   = t.status === 'live' ? 'bg-emerald-400 animate-pulse' : t.status === 'upcoming' ? 'bg-blue-400' : 'bg-slate-500';
+                const slotsLeft    = t.slots - pCount;
+                const statusColor  = t.status==='live' ? 'text-emerald-400' : t.status==='upcoming' ? 'text-blue-400' : 'text-slate-500';
+                const statusDot    = t.status==='live' ? 'bg-emerald-400 animate-pulse' : t.status==='upcoming' ? 'bg-blue-400' : 'bg-slate-500';
 
                 let roomInfoHtml = "";
                 if (myEntry && (t.status === 'live' || t.status === 'started')) {
@@ -799,7 +1157,7 @@
                 } else {
                     const joinLabel = isFree ? `<i class="fa fa-star mr-2"></i>Free Entry` : `<i class="fa fa-gamepad mr-2"></i>Join — ₹${t.fee}`;
                     const joinColor = isFree ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30' : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/30';
-                    btnHtml = `<button onclick="openJoinModal('${matchKey}', ${t.fee || 0})" class="w-full py-3.5 ${joinColor} text-white rounded-xl font-black text-[11px] uppercase tracking-wider shadow-lg active:scale-[0.97] transition-all">${joinLabel}</button>`;
+                    btnHtml = `<button onclick="openJoinModal('${matchKey}', ${t.fee || 0}, ${!isFree})" class="w-full py-3.5 ${joinColor} text-white rounded-xl font-black text-[11px] uppercase tracking-wider shadow-lg active:scale-[0.97] transition-all">${joinLabel}</button>`;
                 }
 
                 list.innerHTML += `<div class="match-card glass-card rounded-[2rem] overflow-hidden">
@@ -812,7 +1170,7 @@
                             ${isFree ? `<span class="bg-emerald-500/90 backdrop-blur-sm text-white text-[9px] font-black px-2.5 py-1 rounded-lg uppercase">FREE</span>` : ''}
                         </div>
                         <div class="absolute bottom-3 left-4 right-4 flex items-center justify-between">
-                            ${t.time ? `<span class="bg-black/60 backdrop-blur-md text-slate-300 text-[9px] font-medium px-2.5 py-1 rounded-lg"><i class="fa fa-clock mr-1 text-blue-400"></i>${formatTime(t.time)}</span>` : '<span></span>'}
+                            ${t.time ? `<span class="bg-black/60 backdrop-blur-md text-slate-300 text-[9px] font-medium px-2.5 py-1 rounded-lg"><i class="fa fa-clock mr-1 text-blue-400"></i>${fmt(t.time)}</span>` : '<span></span>'}
                             <span class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg">
                                 <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span>
                                 <span class="text-[9px] font-bold uppercase ${statusColor}">${t.status || 'Upcoming'}</span>
@@ -859,24 +1217,13 @@
             subtitle: 'Free matches require watching 2 ads first',
             icon: '🎯',
             onContinue: () => {
-                let container = btn.parentElement;
-                while (container && !container.classList.contains('mb-4')) {
-                    container = container.parentElement;
-                }
-                if (!container) container = btn.closest('div');
+                let container = btn.closest('.mb-4') || btn.parentElement;
                 if (container) {
                     container.className = 'bg-emerald-500/5 border border-emerald-500/20 p-4 rounded-[1.25rem] mb-4 room-revealed';
-                    container.innerHTML = `
-                        <p class="text-[9px] text-emerald-400 font-bold uppercase mb-3 tracking-wider text-center">✅ Room Unlocked!</p>
+                    container.innerHTML = `<p class="text-[9px] text-emerald-400 font-bold uppercase mb-3 tracking-wider text-center">✅ Room Unlocked!</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-black/30 p-2.5 rounded-xl text-center">
-                                <p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Room ID</p>
-                                <p class="text-xs font-mono text-white font-bold select-all">${roomId || 'Wait...'}</p>
-                            </div>
-                            <div class="bg-black/30 p-2.5 rounded-xl text-center">
-                                <p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Password</p>
-                                <p class="text-xs font-mono text-white font-bold select-all">${roomPass || 'Wait...'}</p>
-                            </div>
+                            <div class="bg-black/30 p-2.5 rounded-xl text-center"><p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Room ID</p><p class="text-xs font-mono text-white font-bold select-all">${roomId || 'Wait...'}</p></div>
+                            <div class="bg-black/30 p-2.5 rounded-xl text-center"><p class="text-[7px] text-slate-500 uppercase font-bold mb-1">Password</p><p class="text-xs font-mono text-white font-bold select-all">${roomPass || 'Wait...'}</p></div>
                         </div>`;
                 }
             }
@@ -886,8 +1233,7 @@
     function openProofModal(id) { activeMatchId = id; openModal('proof-modal'); }
 
     function handleProofWithAds(event) {
-        const fileInput = document.getElementById('proof-file');
-        if (!fileInput.files[0]) return alert("Screenshot select karo!");
+        if (!document.getElementById('proof-file').files[0]) return alert("Screenshot select karo!");
         closeModal('proof-modal');
         triggerAd();
         openAdGate({
@@ -898,6 +1244,28 @@
         });
     }
 
+    /* ════════════════════════════════════════════════
+       JOIN MATCH  ✅ increments weeklyPaidMatches
+                      and recalculates weeklyScore in DB
+    ═══════════════════════════════════════════════ */
+    function openJoinModal(id, fee, isPaid) {
+        tempMatchId = id;
+        activeMatchFee = fee;
+        window._pendingIsPaid = (isPaid === true || isPaid === 'true');
+        const ffName = document.getElementById('u-ff-name').value;
+        const ffId   = document.getElementById('u-ff-id').value;
+        setText('confirm-ff-name', ffName || '—');
+        setText('confirm-ff-id',   ffId   || '—');
+        openModal('rules-modal');
+    }
+
+    function acceptRules() {
+        closeModal('rules-modal');
+        activeMatchId = tempMatchId;
+        document.getElementById('reg-fee-info').innerText = activeMatchFee === 0 ? "🆓 FREE ENTRY!" : `Joining Fee: ${activeMatchFee} Points`;
+        openModal('reg-modal');
+    }
+
     function confirmJoin(e) {
         const savedFFName = document.getElementById('u-ff-name').value;
         const savedFFId   = document.getElementById('u-ff-id').value;
@@ -905,23 +1273,42 @@
         if (userPoints < activeMatchFee) return alert("Insufficient Balance!");
         const btn = e.target;
         btn.innerText = "JOINING...";
-        btn.disabled = true;
+        btn.disabled  = true;
         triggerAd();
         showVerifyingOverlay("Verifying Entry...", 1500).then(() => {
             const doJoin = () => {
-                db.ref('users/' + auth.currentUser.uid + '/totalMatches').transaction(tm => (tm || 0) + 1);
+                db.ref('users/' + auth.currentUser.uid + '/totalMatches')
+                    .transaction(tm => (tm || 0) + 1);
+
+                // ✅ FIX: Increment weeklyPaidMatches AND recalculate weeklyScore in DB
+                if (window._pendingIsPaid && activeMatchFee > 0) {
+                    db.ref('users/' + auth.currentUser.uid).once('value').then(snap => {
+                        const d            = snap.val() || {};
+                        const newPaid      = (d.weeklyPaidMatches || 0) + 1;
+                        const adsCount     = d.dailyAdsCount    || 0;
+                        const isNewDay     = (Date.now() - (d.lastAdTime || 0)) > 86400000;
+                        const effectiveAds = isNewDay ? 0 : adsCount;
+                        const newScore     = (newPaid * 10) + (effectiveAds * 2);
+                        db.ref('users/' + auth.currentUser.uid).update({
+                            weeklyPaidMatches: newPaid,
+                            weeklyScore: newScore
+                        });
+                    });
+                }
+
                 db.ref('tournaments/' + activeMatchId + '/players')
                     .push({ ign: savedFFName, gameUid: savedFFId, uid: auth.currentUser.uid, joinedAt: Date.now() })
                     .then(() => { alert("✅ Joined Successfully!"); closeModal('reg-modal'); })
                     .finally(() => { btn.innerText = "CONFIRM JOIN"; btn.disabled = false; });
             };
+
             if (activeMatchFee === 0) {
                 doJoin();
             } else {
                 db.ref('users/' + auth.currentUser.uid + '/points')
                     .transaction(cp => { if (cp >= activeMatchFee) return cp - activeMatchFee; })
                     .then(r => {
-                        if (r.committed) { doJoin(); }
+                        if (r.committed) doJoin();
                         else { alert("Transaction failed!"); btn.innerText = "CONFIRM JOIN"; btn.disabled = false; }
                     });
             }
@@ -934,7 +1321,7 @@
         if (!ffName || !ffId) return alert("FF Name aur ID dono bharna zaroori hai!");
         const btn = event.target;
         btn.innerText = "SAVING...";
-        btn.disabled = true;
+        btn.disabled  = true;
         triggerAd();
         db.ref('users/' + auth.currentUser.uid)
             .update({ ffName, ffId })
@@ -943,11 +1330,14 @@
             .finally(() => { btn.innerText = "Save Profile"; btn.disabled = false; });
     }
 
+    /* ════════════════════════════════════════════════
+       IMAGE HELPERS
+    ═══════════════════════════════════════════════ */
     function compressImage(file, quality = 0.5) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = (e) => {
+            reader.onload = e => {
                 const img = new Image();
                 img.src = e.target.result;
                 img.onload = () => {
@@ -964,55 +1354,41 @@
         });
     }
 
-    function openJoinModal(id, fee) {
-        tempMatchId = id;
-        activeMatchFee = fee;
-        const ffName = document.getElementById('u-ff-name').value;
-        const ffId   = document.getElementById('u-ff-id').value;
-        if (document.getElementById('confirm-ff-name')) document.getElementById('confirm-ff-name').innerText = ffName || '—';
-        if (document.getElementById('confirm-ff-id'))   document.getElementById('confirm-ff-id').innerText   = ffId   || '—';
-        openModal('rules-modal');
-    }
-    function acceptRules() {
-        closeModal('rules-modal');
-        activeMatchId = tempMatchId;
-        document.getElementById('reg-fee-info').innerText = activeMatchFee === 0 ? "🆓 FREE ENTRY!" : `Joining Fee: ${activeMatchFee} Points`;
-        openModal('reg-modal');
-    }
-
+    /* ════════════════════════════════════════════════
+       HISTORY
+    ═══════════════════════════════════════════════ */
     function filterHistory(type) {
         currentHistoryFilter = type;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const map = { 'ALL': 'f-all', 'Deposit': 'f-dep', 'Withdrawal': 'f-wit' };
+        const map = { 'ALL':'f-all', 'Deposit':'f-dep', 'Withdrawal':'f-wit' };
         document.getElementById(map[type]).classList.add('active');
         loadHistory();
     }
+
     function loadHistory() {
         if (!auth.currentUser) return;
         db.ref('deposit_requests').orderByChild('uid').equalTo(auth.currentUser.uid).once('value', dSnap => {
             db.ref('withdraw_requests').orderByChild('uid').equalTo(auth.currentUser.uid).once('value', wSnap => {
                 let all = [];
-                dSnap.forEach(c => { let d = c.val(); d.type = "Deposit"; all.push(d); });
-                wSnap.forEach(c => { let d = c.val(); d.type = "Withdrawal"; all.push(d); });
+                dSnap.forEach(c => { const d = c.val(); d.type = "Deposit"; all.push(d); });
+                wSnap.forEach(c => { const d = c.val(); d.type = "Withdrawal"; all.push(d); });
                 if (currentHistoryFilter !== 'ALL') all = all.filter(tx => tx.type === currentHistoryFilter);
                 all.sort((a, b) => b.time - a.time);
                 const list = document.getElementById('history-list');
                 if (!all.length) { list.innerHTML = `<div class="text-center py-12 text-slate-600 font-game text-[9px] tracking-[0.2em]">NO HISTORY FOUND</div>`; return; }
                 list.innerHTML = all.map(tx => {
-                    const statusColor = tx.status === 'approved' ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/15' : (tx.status === 'rejected' ? 'text-red-400 bg-red-500/8 border-red-500/15' : 'text-yellow-400 bg-yellow-500/8 border-yellow-500/15');
-                    const icon = tx.type === 'Deposit' ? 'fa-arrow-down text-emerald-400' : 'fa-arrow-up text-red-400';
-                    const dateStr = tx.time ? new Date(tx.time).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '';
+                    const sc = tx.status === 'approved' ? 'text-emerald-400 bg-emerald-500/8 border-emerald-500/15' : tx.status === 'rejected' ? 'text-red-400 bg-red-500/8 border-red-500/15' : 'text-yellow-400 bg-yellow-500/8 border-yellow-500/15';
+                    const ic = tx.type === 'Deposit' ? 'fa-arrow-down text-emerald-400' : 'fa-arrow-up text-red-400';
+                    const ds = tx.time ? new Date(tx.time).toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '';
                     return `<div class="bg-white/[0.02] p-4 rounded-xl flex items-center gap-3 border border-white/5">
-                        <div class="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center flex-shrink-0">
-                            <i class="fa ${icon} text-sm"></i>
-                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-white/[0.04] flex items-center justify-center flex-shrink-0"><i class="fa ${ic} text-sm"></i></div>
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-bold text-white uppercase tracking-wider">${tx.type}</p>
-                            <p class="text-[9px] text-slate-500 mt-0.5">${dateStr}</p>
+                            <p class="text-[9px] text-slate-500 mt-0.5">${ds}</p>
                         </div>
                         <div class="text-right">
                             <p class="text-sm font-black text-white">₹${tx.amount}</p>
-                            <span class="text-[8px] font-bold uppercase px-2 py-0.5 rounded-full border ${statusColor}">${tx.status}</span>
+                            <span class="text-[8px] font-bold uppercase px-2 py-0.5 rounded-full border ${sc}">${tx.status}</span>
                         </div>
                     </div>`;
                 }).join('');
@@ -1020,43 +1396,42 @@
         });
     }
 
+    /* ════════════════════════════════════════════════
+       TAB SWITCHING
+    ═══════════════════════════════════════════════ */
     function switchTab(tab) {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
         document.getElementById('tab-' + tab).classList.add('active-tab');
         document.querySelectorAll('nav button').forEach(b => { b.classList.remove('nav-active'); b.classList.add('text-slate-500'); });
-        const navBtn = document.getElementById('nav-' + tab);
-        if (navBtn) { navBtn.classList.remove('text-slate-500'); navBtn.classList.add('nav-active'); }
+        const nb = document.getElementById('nav-' + tab);
+        if (nb) { nb.classList.remove('text-slate-500'); nb.classList.add('nav-active'); }
         if (tab === 'leaderboard') loadLeaderboard();
         else if (tab === 'history') loadHistory();
         else if (tab === 'results') loadResults();
     }
 
+    /* ════════════════════════════════════════════════
+       DEPOSITS / WITHDRAWALS
+    ═══════════════════════════════════════════════ */
     async function submitDeposit(event) {
         const amt  = parseInt(document.getElementById('dep-amt').value);
         const file = document.getElementById('dep-file').files[0];
         if (!amt || !file) return alert("Amount aur Screenshot dono chahiye!");
-        const btn = event.target;
-        btn.innerText = "SENDING...";
-        btn.disabled = true;
+        const btn = event.target; btn.innerText = "SENDING..."; btn.disabled = true;
         try {
-            const compressedData = await compressImage(file, 0.6);
+            const compressed = await compressImage(file, 0.6);
             const snap = await db.ref('users/' + auth.currentUser.uid).once('value');
-            const userData = snap.val() || {};
+            const ud   = snap.val() || {};
             await db.ref('deposit_requests').push({
-                uid: auth.currentUser.uid,
-                userName: userData.name || auth.currentUser.email,
-                email: auth.currentUser.email,
-                photo: userData.photo || "",
-                amount: amt,
-                screenshot: compressedData,
-                status: 'pending',
-                time: Date.now()
+                uid: auth.currentUser.uid, userName: ud.name || auth.currentUser.email,
+                email: auth.currentUser.email, photo: ud.photo || "", amount: amt,
+                screenshot: compressed, status: 'pending', time: Date.now()
             });
             alert("✅ Deposit Request Sent!");
             closeModal('deposit-modal');
-            document.getElementById('dep-amt').value = "";
+            document.getElementById('dep-amt').value  = "";
             document.getElementById('dep-file').value = "";
-        } catch (err) { alert("Image error! Try a smaller file."); }
+        } catch(err) { alert("Image error! Try a smaller file."); }
         finally { btn.innerText = "Submit Request"; btn.disabled = false; }
     }
 
@@ -1065,33 +1440,25 @@
         const file = document.getElementById('wit-file').files[0];
         if (!amt || !file) return alert("QR Code aur Amount dono chahiye!");
         if (userPoints < amt) return alert("Balance kam hai!");
-        const btn = event.target;
-        btn.innerText = "SENDING...";
-        btn.disabled = true;
+        const btn = event.target; btn.innerText = "SENDING..."; btn.disabled = true;
         try {
             const compressedQR = await compressImage(file, 0.6);
             const snap = await db.ref('users/' + auth.currentUser.uid).once('value');
-            const userData = snap.val() || {};
+            const ud   = snap.val() || {};
             const result = await db.ref('users/' + auth.currentUser.uid + '/points')
                 .transaction(c => { if (c >= amt) return c - amt; });
             if (result.committed) {
                 await db.ref('withdraw_requests').push({
-                    uid: auth.currentUser.uid,
-                    userName: userData.name || auth.currentUser.email,
-                    email: auth.currentUser.email,
-                    photo: userData.photo || "",
-                    amount: amt,
-                    screenshot: compressedQR,
-                    status: 'pending',
-                    payoutId: "QR Uploaded",
-                    time: Date.now()
+                    uid: auth.currentUser.uid, userName: ud.name || auth.currentUser.email,
+                    email: auth.currentUser.email, photo: ud.photo || "", amount: amt,
+                    screenshot: compressedQR, status: 'pending', payoutId: "QR Uploaded", time: Date.now()
                 });
                 alert("✅ Withdrawal Request Sent!");
                 closeModal('withdraw-modal');
-                document.getElementById('wit-amt').value = "";
+                document.getElementById('wit-amt').value  = "";
                 document.getElementById('wit-file').value = "";
-            } else { alert("Transaction failed! Check balance."); }
-        } catch (err) { alert("Error aaya! Try again."); }
+            } else alert("Transaction failed!");
+        } catch(err) { alert("Error aaya! Try again."); }
         finally { btn.innerText = "Submit Withdrawal"; btn.disabled = false; }
     }
 
@@ -1102,10 +1469,13 @@
             const compressed = await compressImage(file, 0.5);
             await db.ref('users/' + auth.currentUser.uid).update({ photo: compressed });
             alert("✅ Photo Updated!");
-        } catch (err) { alert("Error!"); }
+        } catch(err) { alert("Error!"); }
         finally { document.getElementById('u-photo-upload').value = ""; }
     }
 
+    /* ════════════════════════════════════════════════
+       PROOF SUBMISSION
+    ═══════════════════════════════════════════════ */
     async function sendProof(e) {
         const fileInput = document.getElementById('proof-file');
         const file = fileInput.files[0];
@@ -1118,29 +1488,24 @@
             if (!isJoined) return alert("❌ Aapne ye match join nahi kiya!");
             const pSnap = await db.ref('win_proofs').once('value');
             let alreadySent = 0;
-            pSnap.forEach(p => {
-                const d = p.val();
-                if (d.uid === user.uid && String(d.matchId) === String(activeMatchId)) alreadySent++;
-            });
+            pSnap.forEach(p => { const d = p.val(); if (d.uid === user.uid && String(d.matchId) === String(activeMatchId)) alreadySent++; });
             if (alreadySent >= joinCount) return alert(`⚠️ Already ${joinCount} proof(s) sent!`);
             const compressed = await compressImage(file, 0.5);
             const uSnap = await db.ref('users/' + user.uid).once('value');
-            const userData = uSnap.val() || {};
+            const ud    = uSnap.val() || {};
             await db.ref('win_proofs').push({
-                uid: user.uid,
-                userName: userData.name || document.getElementById('u-name').innerText,
-                email: user.email,
-                userPhoto: userData.photo || "",
-                matchId: activeMatchId,
-                screenshot: compressed,
-                time: Date.now(),
-                status: 'pending'
+                uid: user.uid, userName: ud.name || document.getElementById('u-name').innerText,
+                email: user.email, userPhoto: ud.photo || "", matchId: activeMatchId,
+                screenshot: compressed, time: Date.now(), status: 'pending'
             });
             alert("✅ Proof Sent Successfully!");
             fileInput.value = "";
-        } catch (err) { console.error(err); alert("Error! Please try again."); }
+        } catch(err) { console.error(err); alert("Error! Please try again."); }
     }
 
+    /* ════════════════════════════════════════════════
+       RESULTS
+    ═══════════════════════════════════════════════ */
     function loadResults() {
         const ONE_WEEK = 7 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -1162,17 +1527,15 @@
                         <p class="text-white font-bold text-xs uppercase tracking-wide">${r.match || r.matchName || 'Match Result'}</p>
                         <span class="text-[9px] text-slate-500">${new Date(r.time).toLocaleDateString()}</span>
                     </div>
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fa fa-crown text-yellow-400 text-xs"></i>
-                        <p class="text-emerald-400 text-xs font-black uppercase">${r.winner || r.winnerName}</p>
-                    </div>
-                    <div class="rounded-xl overflow-hidden border border-white/5">
-                        <img src="${r.img || r.screenshot}" loading="lazy" class="w-full h-auto max-h-60 object-contain bg-black/40" onclick="window.open(this.src)">
-                    </div>
+                    <div class="flex items-center gap-2 mb-3"><i class="fa fa-crown text-yellow-400 text-xs"></i><p class="text-emerald-400 text-xs font-black uppercase">${r.winner || r.winnerName}</p></div>
+                    <div class="rounded-xl overflow-hidden border border-white/5"><img src="${r.img || r.screenshot}" loading="lazy" class="w-full h-auto max-h-60 object-contain bg-black/40" onclick="window.open(this.src)"></div>
                 </div>`).join('') : `<div class="text-center py-12 text-slate-600 font-game text-[9px] tracking-[0.2em]">NO RESULTS YET</div>`;
         });
     }
 
+    /* ════════════════════════════════════════════════
+       MISC
+    ═══════════════════════════════════════════════ */
     function editDisplayName() {
         const newName = prompt("New name:", document.getElementById('u-name').innerText);
         if (newName && newName.trim()) db.ref('users/' + auth.currentUser.uid).update({ name: newName.trim() });
@@ -1185,8 +1548,8 @@
     }
     function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    function logout() { auth.signOut().then(() => location.reload()); }
-    function loadAdminQR() { db.ref('admin_settings/qr').on('value', snap => { if (snap.exists()) document.getElementById('adm-qr-img').src = snap.val(); }); }
+    function logout()       { auth.signOut().then(() => location.reload()); }
+    function loadAdminQR()  { db.ref('admin_settings/qr').on('value', snap => { if (snap.exists()) document.getElementById('adm-qr-img').src = snap.val(); }); }
     function loadAnnouncements() {
         db.ref('announcements').on('value', snap => {
             if (snap.exists() && snap.val().message) {
